@@ -35,9 +35,10 @@ app.use(morgan(env.NODE_ENV === 'development' ? 'dev' : 'combined'));
 app.use('/public', express.static(path.join(process.cwd(), 'public')));
 
 // Rate Limiting Config
+// Rate Limiting Config
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: env.NODE_ENV === 'development' ? 99999999 : 500, // Increased from 100 to 500 for polling
+  max: 99999999, // Disabled for now to prevent issues
   standardHeaders: true,
   legacyHeaders: false,
   passOnStoreError: true,
@@ -48,7 +49,7 @@ const limiter = rateLimit({
 
 const aiLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 min
-  max: env.NODE_ENV === 'development' ? 99999999 : 10,
+  max: 99999999, // Disabled for now
   passOnStoreError: true,
   store: redis ? new RedisStore({
     sendCommand: (...args: string[]) => redis!.call(args[0], ...args.slice(1)) as any,
