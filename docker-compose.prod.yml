@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - app_network
+    depends_on:
+      - node-api
+
+  node-api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: node_api
+    restart: unless-stopped
+    env_file:
+      - ./apps/api/.env.production
+    volumes:
+      - ./uploads:/app/public
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  caddy_data:
+  caddy_config:

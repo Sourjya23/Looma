@@ -1,0 +1,3 @@
+api.yourdomain.com {
+    reverse_proxy node_api:3001
+}

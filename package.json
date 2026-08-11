@@ -1,0 +1,22 @@
+{
+  "name": "story-writing-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI Story Writing Practice App — Write. Get Feedback. Improve.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev -w apps/web",
+    "dev:api": "npm run dev -w apps/api",
+    "dev:ai": "cd apps/ai && source venv/bin/activate && uvicorn app.main:app --reload --port 8000",
+    "dev": "npm run dev:api & npm run dev:web",
+    "build:web": "npm run build -w apps/web",
+    "build:api": "npm run build -w apps/api",
+    "lint": "npm run lint -w apps/web"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

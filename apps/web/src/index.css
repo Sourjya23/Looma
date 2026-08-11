@@ -1,0 +1,534 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Merriweather:wght@300;400;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+/* ── Design System Tokens — DStudio-inspired ── */
+@theme {
+  /* Colors - Light clean theme with dark accents */
+  --color-bg-primary: #fafafa;
+  --color-bg-secondary: #f0f0f0;
+  --color-bg-card: #ffffff;
+  --color-bg-card-hover: #f5f5f5;
+  --color-bg-dark: #0a0a0a;
+  --color-bg-dark-secondary: #141414;
+  --color-bg-glass: rgba(255, 255, 255, 0.7);
+  --color-bg-input: #f5f5f5;
+
+  --color-text-primary: #0a0a0a;
+  --color-text-secondary: #555555;
+  --color-text-muted: #999999;
+  --color-text-light: #cccccc;
+  --color-text-on-dark: #ffffff;
+  --color-text-on-dark-muted: #888888;
+
+  --color-accent-primary: #0a0a0a;
+  --color-accent-hover: #333333;
+  --color-accent-cyan: #06b6d4;
+  --color-accent-teal: #14b8a6;
+
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+
+  --color-border: #e5e5e5;
+  --color-border-dark: #2a2a2a;
+  --color-border-active: #cccccc;
+
+  /* Fonts */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --font-serif: 'Merriweather', Georgia, serif;
+
+  /* Spacing */
+  --spacing-page: 1.5rem;
+  --spacing-section: 8rem;
+
+  /* Radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-card-hover: 0 8px 30px rgba(0, 0, 0, 0.08);
+  --shadow-elevated: 0 20px 60px rgba(0, 0, 0, 0.1);
+
+  /* Animations */
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+  --duration-slow: 500ms;
+}
+
+/* ── Global Styles ── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── Typography ── */
+h1, h2, h3, h4, h5, h6 {
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+/* ── Utility: Glass Card ── */
+.glass-card {
+  background: var(--color-bg-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+}
+
+/* ── Utility: Section Container ── */
+.section-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 clamp(1.5rem, 5vw, 6rem);
+}
+
+/* ── Utility: Eyebrow label (like DStudio's "The Problem", "Case Studies") ── */
+.eyebrow {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+}
+
+/* ── Utility: Giant Heading ── */
+.heading-giant {
+  font-size: clamp(2.5rem, 8vw, 7.5rem);
+  font-weight: 400;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+  color: var(--color-text-primary);
+}
+
+.heading-giant .text-faded {
+  color: var(--color-text-muted);
+}
+
+/* ── Button: Pill style (DStudio-inspired) ── */
+.btn-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 2rem;
+  border-radius: var(--radius-full);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition: all var(--duration-normal) var(--ease-smooth);
+  text-decoration: none;
+  border: none;
+}
+
+.btn-pill-dark {
+  background: var(--color-bg-dark);
+  color: var(--color-text-on-dark);
+}
+
+.btn-pill-dark:hover {
+  background: var(--color-accent-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.btn-pill-outline {
+  background: transparent;
+  color: var(--color-text-primary);
+  border: 1.5px solid var(--color-border-active);
+}
+
+.btn-pill-outline:hover {
+  border-color: var(--color-text-primary);
+  background: var(--color-bg-card);
+  transform: translateY(-1px);
+}
+
+.btn-pill-light {
+  background: var(--color-bg-card);
+  color: var(--color-text-primary);
+  border: 1.5px solid var(--color-border);
+}
+
+.btn-pill-light:hover {
+  border-color: var(--color-border-active);
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-1px);
+}
+
+/* ── Card Styles ── */
+.feature-card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2xl);
+  padding: 2rem;
+  transition: all var(--duration-normal) var(--ease-smooth);
+}
+
+.feature-card:hover {
+  box-shadow: var(--shadow-card-hover);
+  border-color: var(--color-border-active);
+  transform: translateY(-2px);
+}
+
+/* ── Stats Bar (DStudio-style numbered stats) ── */
+.stat-number {
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-weight: 300;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-active);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* ── Focus Ring ── */
+:focus-visible {
+  outline: 2px solid var(--color-text-primary);
+  outline-offset: 2px;
+}
+
+/* ── Selection ── */
+::selection {
+  background: rgba(10, 10, 10, 0.1);
+  color: var(--color-text-primary);
+}
+
+/* ── Animations ── */
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(60px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.7s var(--ease-smooth) both;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.8s var(--ease-smooth) both;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+
+@keyframes fadeOutUp {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1.5);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20px) scale(1);
+  }
+}
+
+/* ── Utilities ── */
+.text-faded {
+  opacity: 0.5;
+}
+
+/* ── TipTap Editor Styles ── */
+.ProseMirror {
+  min-height: 50vh;
+  outline: none;
+  font-size: 1.125rem;
+  line-height: 1.8;
+  color: var(--color-text-primary);
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+  color: var(--color-text-muted);
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* ── Stagger children ── */
+.stagger > * {
+  opacity: 0;
+  animation: fade-in-up 0.6s var(--ease-smooth) both;
+}
+.stagger > *:nth-child(1) { animation-delay: 0.1s; }
+.stagger > *:nth-child(2) { animation-delay: 0.2s; }
+.stagger > *:nth-child(3) { animation-delay: 0.3s; }
+.stagger > *:nth-child(4) { animation-delay: 0.4s; }
+.stagger > *:nth-child(5) { animation-delay: 0.5s; }
+.stagger > *:nth-child(6) { animation-delay: 0.6s; }
+
+/* ── Separator Line (DStudio-style) ── */
+.separator {
+  height: 1px;
+  background: var(--color-border);
+  width: 100%;
+}
+
+/* ── Numbered Item (DStudio accordion-style) ── */
+.numbered-item {
+  border-top: 1px solid var(--color-border);
+  padding: 1.5rem 0;
+  display: flex;
+  gap: 1rem;
+  align-items: baseline;
+  transition: all var(--duration-normal) var(--ease-smooth);
+}
+
+.numbered-item:last-child {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.numbered-item .number {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  min-width: 2rem;
+}
+
+.numbered-item .item-title {
+  font-size: 1.25rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+/* ── Footer (DStudio-style dark) ── */
+.footer-dark {
+  background: var(--color-bg-dark);
+  color: var(--color-text-on-dark);
+  border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+}
+
+.footer-brand-text {
+  font-size: clamp(2rem, 8vw, 7rem);
+  font-weight: 300;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  color: var(--color-text-on-dark);
+}
+
+.footer-tagline {
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  font-weight: 300;
+  letter-spacing: -0.03em;
+  line-height: 1.3;
+  color: var(--color-text-on-dark);
+}
+
+.footer-tagline .faded {
+  color: var(--color-text-on-dark-muted);
+}
+
+.footer-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 0;
+  border-bottom: 1px solid var(--color-border-dark);
+  color: var(--color-text-on-dark);
+  text-decoration: none;
+  font-size: 0.9375rem;
+  transition: all var(--duration-fast) var(--ease-smooth);
+}
+
+.footer-link:hover {
+  color: var(--color-text-on-dark);
+  padding-left: 0.5rem;
+}
+
+.footer-link svg {
+  width: 16px;
+  height: 16px;
+  opacity: 0.5;
+  transition: opacity var(--duration-fast);
+}
+
+.footer-link:hover svg {
+  opacity: 1;
+}
+
+/* ── TipTap Editor Styles ── */
+.tiptap-editor .ProseMirror {
+  outline: none;
+  min-height: 300px;
+  font-family: var(--font-serif);
+  font-size: 1.125rem;
+  line-height: 1.8;
+  color: var(--color-text-primary);
+  padding: 1.5rem;
+}
+
+.tiptap-editor .ProseMirror p {
+  margin: 0 0 1em 0;
+}
+
+.tiptap-editor .ProseMirror:focus {
+  outline: none;
+}
+
+.tiptap-editor .ProseMirror .time-marker {
+  display: block;
+  text-align: center;
+  padding: 1rem 0;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  user-select: none;
+  opacity: 0.7;
+}
+
+/* ── Navbar ── */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 0 clamp(1.5rem, 4vw, 4rem);
+  transition: all var(--duration-normal) var(--ease-smooth);
+}
+
+.navbar-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 80px;
+}
+
+.navbar.scrolled {
+  background: rgba(250, 250, 250, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.navbar-logo {
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+
+.navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.navbar-links a {
+  font-size: 0.9375rem;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition: color var(--duration-fast);
+}
+
+.navbar-links a:hover {
+  color: var(--color-text-primary);
+}
+
+/* ── Process steps (vertical numbered) ── */
+.process-step {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2rem;
+  padding: 2.5rem 0;
+  border-top: 1px solid var(--color-border);
+  transition: all var(--duration-normal) var(--ease-smooth);
+}
+
+.process-step:hover {
+  padding-left: 0.5rem;
+}
+
+.process-step .step-number {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  padding-top: 0.25rem;
+}
+
+.process-step .step-title {
+  font-size: 1.375rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
+}
+
+.process-step .step-desc {
+  font-size: 0.9375rem;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  max-width: 500px;
+}

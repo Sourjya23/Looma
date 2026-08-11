@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: story-writing-api
+    env: node
+    buildCommand: npm install && cd apps/api && npx prisma generate && npm run build
+    startCommand: cd apps/api && npx prisma migrate deploy && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false

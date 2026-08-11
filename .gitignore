@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+out/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Prisma
+apps/api/prisma/generated/
+
+# Python
+services/ai/__pycache__/
+services/ai/.venv/
+services/ai/venv/
+*.pyc
+*.pyo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Testing
+coverage/
+.playwright/
+
+# Misc
+*.tsbuildinfo
+.env.production

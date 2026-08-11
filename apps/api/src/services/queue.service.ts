@@ -1,0 +1,116 @@
+import { Queue, Worker, Job } from 'bullmq';
+import IORedis from 'ioredis';
+import { env } from '../config/env.js';
+import { AIService } from './ai.service.js';
+import { prisma } from '../config/database.js';
+
+// Setup connection options for BullMQ
+const connection = new IORedis(env.REDIS_URL, {
+  maxRetriesPerRequest: null,
+});
+
+export const aiQueue = new Queue('ai-analysis', { connection });
+
+interface AIJobData {
+  submissionId: string;
+  content: string;
+  challengePrompt: string;
+  role: 'english' | 'story' | 'director';
+}
+
+export const aiWorker = new Worker('ai-analysis', async (job: Job<AIJobData>) => {
+  const { submissionId, content, challengePrompt, role } = job.data;
+  
+  try {
+    switch (role) {
+      case 'english':
+        const englishResult = await AIService.analyzeEnglish(submissionId, content, challengePrompt);
+        const englishPayload = {
+          score: englishResult.score,
+          strengths: englishResult.strengths,
+          mistakes: englishResult.mistakes,
+          repetition: englishResult.repetition,
+          vocabularyImprovements: englishResult.vocabularyImprovements,
+          learningPoints: englishResult.learningPoints,
+        };
+        await prisma.englishAnalysis.upsert({
+          where: { submissionId },
+          update: englishPayload,
+          create: { submissionId, ...englishPayload }
+        });
+        
+        try {
+          // Trigger Profile Update Pipeline
+          const submission = await prisma.submission.findUnique({ where: { id: submissionId }, include: { session: true }});
+          if (submission) {
+            const { extractMistakesFromAnalysis } = await import('./profile/mistake-extractor.js');
+            const { updateWritingProfile } = await import('./profile/profile-engine.js');
+            const { generateAIProfileInterpretation } = await import('./profile/ai-interpreter.js');
+            
+            await extractMistakesFromAnalysis(submission.session.userId, submission.id, englishResult.mistakes as any[]);
+            const profile = await updateWritingProfile(submission.session.userId);
+            if (profile) {
+              await generateAIProfileInterpretation(submission.session.userId, profile);
+            }
+          }
+        } catch (err) {
+          console.error('Failed to update writing profile pipeline:', err);
+        }
+        break;
+      case 'story':
+        const storyResult = await AIService.analyzeStory(submissionId, content, challengePrompt);
+        const storyPayload = {
+          overallScore: storyResult.overallScore,
+          conceptScore: storyResult.conceptScore,
+          characterScore: storyResult.characterScore,
+          conflictScore: storyResult.conflictScore,
+          pacingScore: storyResult.pacingScore,
+          creativityScore: storyResult.creativityScore,
+          endingScore: storyResult.endingScore,
+          visualStorytellingScore: storyResult.visualStorytellingScore ?? 0,
+          strengths: storyResult.strengths,
+          problems: storyResult.problems,
+          suggestions: storyResult.suggestions,
+          metaEvaluation: storyResult.metaEvaluation,
+        };
+        await prisma.storyAnalysis.upsert({
+          where: { submissionId },
+          update: storyPayload,
+          create: { submissionId, ...storyPayload }
+        });
+        break;
+      case 'director':
+        const directorResult = await AIService.analyzeDirector(submissionId, content, challengePrompt);
+        const directorPayload = {
+          overallScore: directorResult.overallScore,
+          visualStorytellingScore: directorResult.visualStorytellingScore,
+          sceneConstructionScore: directorResult.sceneConstructionScore,
+          showDontTellScore: directorResult.showDontTellScore,
+          cinematicPotentialScore: directorResult.cinematicPotentialScore,
+          strengths: directorResult.strengths,
+          problems: directorResult.problems,
+          suggestions: directorResult.suggestions,
+        };
+        await prisma.directorAnalysis.upsert({
+          where: { submissionId },
+          update: directorPayload,
+          create: { submissionId, ...directorPayload }
+        });
+        break;
+    }
+  } catch (err) {
+    console.error(`AI analysis failed for ${role} on submission ${submissionId}`, err);
+    throw err; // triggers bullmq retry
+  }
+}, { 
+  connection,
+  concurrency: 3, // Since we have 3 roles, we can process 3 concurrently per worker
+});
+
+aiWorker.on('completed', (job) => {
+  console.log(`Job with id ${job.id} has been completed`);
+});
+
+aiWorker.on('failed', (job, err) => {
+  console.log(`Job with id ${job?.id} has failed with ${err.message}`);
+});

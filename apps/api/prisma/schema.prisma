@@ -1,0 +1,217 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String            @id @default(uuid())
+  email            String            @unique
+  username         String            @unique
+  password         String
+  avatarUrl        String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  challenges       Challenge[]
+  detectedMistakes DetectedMistake[]
+  writingProfile   WritingProfile?
+  sessions         WritingSession[]
+
+  // Gamification
+  xp               Int               @default(0)
+  level            Int               @default(1)
+  currentStreak    Int               @default(0)
+  longestStreak    Int               @default(0)
+  lastActiveDate   DateTime?
+  displayName      String?
+  leaderboardOptIn Boolean           @default(true)
+  xpEvents         XPEvent[]
+  achievements     UserAchievement[]
+}
+
+model Challenge {
+  id          String           @id @default(uuid())
+  type        String
+  prompt      String
+  genre       String?
+  character   String?
+  situation   String?
+  location    String?
+  object      String?
+  constraint  String?
+  timeLimit   Int?
+  wordTarget  Int?
+  difficulty  String
+  createdAt   DateTime         @default(now())
+  fingerprint String?
+  mode        String           @default("normal")
+  userId      String?
+  targetSkill String?
+  user        User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessions    WritingSession[]
+}
+
+model WritingSession {
+  id                   String       @id @default(uuid())
+  userId               String
+  challengeId          String
+  targetTime           Int
+  wordTarget           Int
+  difficulty           String
+  startedAt            DateTime?
+  completedAt          DateTime?
+  activeTime           Int          @default(0)
+  overtime             Int          @default(0)
+  status               String
+  title                String?
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+  draftContent         String?
+  draftRevisionContent String?
+  isBookmarked         Boolean      @default(false)
+  pauseEvents          PauseEvent[]
+  submissions          Submission[]
+  challenge            Challenge    @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  user                 User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Submission {
+  id                 String            @id @default(uuid())
+  sessionId          String
+  title              String?
+  content            String
+  wordCount          Int
+  characterCount     Int
+  activeWritingTime  Int?              @default(0)
+  version            Int               @default(1)
+  parentSubmissionId String?
+  submittedAt        DateTime          @default(now())
+  detectedMistakes   DetectedMistake[]
+  directorAnalysis   DirectorAnalysis?
+  englishAnalysis    EnglishAnalysis?
+  storyAnalysis      StoryAnalysis?
+  session            WritingSession    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  parentSubmission   Submission?       @relation("RevisionHistory", fields: [parentSubmissionId], references: [id])
+  childSubmissions   Submission[]      @relation("RevisionHistory")
+}
+
+model EnglishAnalysis {
+  id                     String     @id @default(uuid())
+  submissionId           String     @unique
+  score                  Int
+  strengths              Json
+  mistakes               Json
+  repetition             Json
+  vocabularyImprovements Json
+  learningPoints         Json
+  model                  String     @default("llama3")
+  promptVersion          String     @default("1.0")
+  createdAt              DateTime   @default(now())
+  updatedAt              DateTime   @updatedAt
+  submission             Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+}
+
+model StoryAnalysis {
+  id                      String     @id @default(uuid())
+  submissionId            String     @unique
+  overallScore            Int
+  conceptScore            Int
+  characterScore          Int
+  conflictScore           Int
+  pacingScore             Int
+  creativityScore         Int
+  endingScore             Int
+  visualStorytellingScore Int        @default(0)
+  strengths               Json
+  problems                Json
+  suggestions             Json
+  metaEvaluation          Json?
+  model                   String     @default("llama3")
+  promptVersion           String     @default("1.0")
+  createdAt               DateTime   @default(now())
+  updatedAt               DateTime   @updatedAt
+  submission              Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+}
+
+model DirectorAnalysis {
+  id                      String     @id @default(uuid())
+  submissionId            String     @unique
+  overallScore            Int
+  visualStorytellingScore Int
+  sceneConstructionScore  Int
+  showDontTellScore       Int
+  cinematicPotentialScore Int
+  strengths               Json
+  problems                Json
+  suggestions             Json
+  model                   String     @default("llama3")
+  promptVersion           String     @default("1.0")
+  createdAt               DateTime   @default(now())
+  updatedAt               DateTime   @updatedAt
+  submission              Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+}
+
+model PauseEvent {
+  id        String         @id @default(uuid())
+  sessionId String
+  pausedAt  DateTime       @default(now())
+  resumedAt DateTime?
+  session   WritingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+model DetectedMistake {
+  id           String     @id @default(uuid())
+  userId       String
+  submissionId String
+  category     String
+  subCategory  String
+  originalText String
+  correction   String
+  explanation  String
+  createdAt    DateTime   @default(now())
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model WritingProfile {
+  id                   String   @id @default(uuid())
+  userId               String   @unique
+  averageGrammarScore  Float    @default(0)
+  averageStoryScore    Float    @default(0)
+  averageDirectorScore Float    @default(0)
+  averageWordCount     Float    @default(0)
+  averageWritingSpeed  Float    @default(0)
+  totalSessions        Int      @default(0)
+  strengths            Json
+  weaknesses           Json
+  trends               Json
+  aiInterpretation     String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model XPEvent {
+  id        String   @id @default(uuid())
+  userId    String
+  amount    Int
+  reason    String
+  sourceId  String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, reason, sourceId])
+}
+
+model UserAchievement {
+  id             String   @id @default(uuid())
+  userId         String
+  achievementKey String
+  unlockedAt     DateTime @default(now())
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementKey])
+}
