@@ -73,7 +73,7 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 // ── Start ──
-app.listen(env.API_PORT, () => {
+app.listen(env.API_PORT, '0.0.0.0', () => {
   console.log(`
   ┌─────────────────────────────────────┐
   │  📝 Story Writing API              │
