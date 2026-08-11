@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { analyzeSubmission, getAnalysis, getStoryAnalysis, analyzeStorySubmission, getDirectorAnalysis, analyzeDirectorSubmission, getAnalysisStatus, analyzeAllSubmissions } from '../controllers/ai.controller.js';
-import { requireAuth } from '../middleware/auth.middleware';
+import { requireAuth } from '../middleware/auth.middleware.js';
 
 const router = Router();
 
