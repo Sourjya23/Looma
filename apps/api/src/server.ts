@@ -20,6 +20,7 @@ import gamificationRoutes from './routes/gamification.routes.js';
 import leaderboardRoutes from './routes/leaderboard.routes.js';
 
 const app = express();
+app.set('trust proxy', 1); // Trust first proxy (Render) for correct IP rate limiting
 
 // ── Middleware ──
 app.use(cors({
@@ -36,7 +37,7 @@ app.use('/public', express.static(path.join(process.cwd(), 'public')));
 // Rate Limiting Config
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: env.NODE_ENV === 'development' ? 99999999 : 100,
+  max: env.NODE_ENV === 'development' ? 99999999 : 500, // Increased from 100 to 500 for polling
   standardHeaders: true,
   legacyHeaders: false,
   passOnStoreError: true,
