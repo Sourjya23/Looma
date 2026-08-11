@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { API_BASE } from '@/lib/api';
 
 interface HistorySidebarProps {
   token: string;
@@ -19,7 +20,7 @@ export function HistorySidebar({ token, onNewWriting, activeSessionId }: History
     if (loading || (!hasMore && p !== 1)) return;
     setLoading(true);
     try {
-      const res = await fetch(`/api/history?page=${p}&limit=20`, {
+      const res = await fetch(`${API_BASE}/history?page=${p}&limit=20`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
@@ -53,7 +54,7 @@ export function HistorySidebar({ token, onNewWriting, activeSessionId }: History
     
     const id = item.id;
     try {
-      const res = await fetch(`/api/sessions/${id}`, {
+      const res = await fetch(`${API_BASE}/sessions/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -77,7 +78,7 @@ export function HistorySidebar({ token, onNewWriting, activeSessionId }: History
     setHistory(prev => prev.map(h => h.id === id ? { ...h, isBookmarked: !currentStatus } : h));
     
     try {
-      const res = await fetch(`/api/sessions/${id}/bookmark`, {
+      const res = await fetch(`${API_BASE}/sessions/${id}/bookmark`, {
         method: 'PUT',
         headers: { Authorization: `Bearer ${token}` }
       });

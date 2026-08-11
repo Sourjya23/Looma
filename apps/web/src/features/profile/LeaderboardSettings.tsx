@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
+import { API_BASE } from '@/lib/api';
 
 export function LeaderboardSettings() {
   const { user, token } = useAuth();
@@ -11,7 +12,7 @@ export function LeaderboardSettings() {
   const handleSave = async () => {
     setStatus('saving');
     try {
-      const res = await fetch('/api/leaderboard/opt-in', {
+      const res = await fetch(`${API_BASE}/leaderboard/opt-in`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

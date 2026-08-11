@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
+import { API_BASE } from '@/lib/api';
 
 export function LeaderboardPage() {
   const { token, user } = useAuth();
@@ -14,10 +15,10 @@ export function LeaderboardPage() {
       setLoading(true);
       try {
         const [lbRes, rankRes] = await Promise.all([
-          fetch(`/api/leaderboard?period=${period}&limit=50`, {
+          fetch(`${API_BASE}/leaderboard?period=${period}&limit=50`, {
             headers: { Authorization: `Bearer ${token}` }
           }),
-          fetch(`/api/leaderboard/me?period=${period}`, {
+          fetch(`${API_BASE}/leaderboard/me?period=${period}`, {
             headers: { Authorization: `Bearer ${token}` }
           })
         ]);

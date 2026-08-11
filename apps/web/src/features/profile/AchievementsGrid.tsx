@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import type { UserAchievement } from 'shared-types';
+import { API_BASE } from '@/lib/api';
 
 const ACHIEVEMENT_CATALOGUE = [
   { key: 'FIRST_STORY', name: 'First Story', description: 'Complete your first writing session', icon: '🏆' },
@@ -21,7 +22,7 @@ export function AchievementsGrid() {
   useEffect(() => {
     const fetchGamification = async () => {
       try {
-        const res = await fetch('/api/gamification/profile', {
+        const res = await fetch(`${API_BASE}/gamification/profile`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         const data = await res.json();

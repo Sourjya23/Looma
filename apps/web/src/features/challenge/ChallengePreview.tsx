@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API_BASE } from '@/lib/api';
 // Note: update shared-types later if needed, or use string
 
 interface ChallengePreviewProps {
@@ -20,7 +21,7 @@ export function ChallengePreview({ token, onStart, initialDifficulty = 'intermed
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('/api/challenges/generate', {
+      const res = await fetch(`${API_BASE}/challenges/generate`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

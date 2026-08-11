@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { Submission } from 'shared-types';
+import { API_BASE } from '@/lib/api';
 
 interface EnglishFeedbackProps {
   submission: Submission;
@@ -21,7 +22,7 @@ export function EnglishFeedback({ submission, token }: EnglishFeedbackProps) {
     // Let's do an explicit fetch on mount to see if it exists.
     const checkExisting = async () => {
       try {
-        const res = await fetch(`/api/submissions/${submission.id}/analysis`, {
+        const res = await fetch(`${API_BASE}/submissions/${submission.id}/analysis`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.ok) {
@@ -43,7 +44,7 @@ export function EnglishFeedback({ submission, token }: EnglishFeedbackProps) {
     if (state === 'ANALYZING') {
       interval = setInterval(async () => {
         try {
-          const res = await fetch(`/api/submissions/${submission.id}/analysis`, {
+          const res = await fetch(`${API_BASE}/submissions/${submission.id}/analysis`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           if (res.ok) {
@@ -66,7 +67,7 @@ export function EnglishFeedback({ submission, token }: EnglishFeedbackProps) {
     setState('ANALYZING');
     setErrorMsg('');
     try {
-      const res = await fetch(`/api/submissions/${submission.id}/analyze`, {
+      const res = await fetch(`${API_BASE}/submissions/${submission.id}/analyze`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`

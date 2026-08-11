@@ -8,6 +8,7 @@ import TextAlign from '@tiptap/extension-text-align';
 import toast from 'react-hot-toast';
 import { useAuth } from '../auth/AuthContext';
 import type { WritingSession, Challenge } from 'shared-types';
+import { API_BASE } from '@/lib/api';
 
 type SessionWithChallenge = WritingSession & { challenge?: Challenge };
 
@@ -143,7 +144,7 @@ export function WritingPage() {
       if (!token || !sessionId) return;
 
       try {
-        let res = await fetch(`/api/sessions/${sessionId}`, {
+        let res = await fetch(`${API_BASE}/sessions/${sessionId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         let data = await res.json();
@@ -152,7 +153,7 @@ export function WritingPage() {
           let sessionData = data.data;
 
           if (sessionData.status === 'idle') {
-            const startRes = await fetch(`/api/sessions/${sessionId}/start`, {
+            const startRes = await fetch(`${API_BASE}/sessions/${sessionId}/start`, {
               method: 'PUT',
               headers: { Authorization: `Bearer ${token}` }
             });
@@ -220,7 +221,7 @@ export function WritingPage() {
     if (!editor || !session || session.status === 'submitted') return;
 
     const handle = setTimeout(() => {
-      fetch(`/api/sessions/${session.id}/autosave`, {
+      fetch(`${API_BASE}/sessions/${session.id}/autosave`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -248,7 +249,7 @@ export function WritingPage() {
     }
 
     try {
-      await fetch(`/api/sessions/${session?.id}/${newState ? 'pause' : 'resume'}`, {
+      await fetch(`${API_BASE}/sessions/${session?.id}/${newState ? 'pause' : 'resume'}`, {
         method: 'PUT',
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -266,7 +267,7 @@ export function WritingPage() {
       const text = editor.getText();
       const words = text.trim().split(/\s+/).filter(word => word.length > 0);
 
-      const res = await fetch(`/api/sessions/${session.id}/submit`, {
+      const res = await fetch(`${API_BASE}/sessions/${session.id}/submit`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

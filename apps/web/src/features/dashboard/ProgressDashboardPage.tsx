@@ -3,6 +3,7 @@ import { useAuth } from '../auth/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from 'recharts';
 import { GamificationWidget } from './GamificationWidget';
+import { API_BASE } from '@/lib/api';
 
 export function ProgressDashboardPage() {
   const { token } = useAuth();
@@ -18,10 +19,10 @@ export function ProgressDashboardPage() {
       setLoading(true);
       try {
         const [dashRes, profRes] = await Promise.all([
-          fetch(`/api/dashboard/overview?range=${range}`, {
+          fetch(`${API_BASE}/dashboard/overview?range=${range}`, {
             headers: { Authorization: `Bearer ${token}` }
           }),
-          fetch(`/api/profile`, {
+          fetch(`${API_BASE}/profile`, {
             headers: { Authorization: `Bearer ${token}` }
           })
         ]);

@@ -5,6 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import { AchievementsGrid } from './AchievementsGrid';
 import { LeaderboardSettings } from './LeaderboardSettings';
 import toast from 'react-hot-toast';
+import { API_BASE } from '@/lib/api';
 
 export function ProfilePage() {
   const { token, user, updateUser } = useAuth();
@@ -18,7 +19,7 @@ export function ProfilePage() {
     const fetchProfile = async () => {
       if (!token) return;
       try {
-        const res = await fetch('/api/profile', {
+        const res = await fetch(`${API_BASE}/profile`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         const data = await res.json();
@@ -67,7 +68,7 @@ export function ProfilePage() {
       const base64 = event.target?.result as string;
       setUploadingAvatar(true);
       try {
-        const res = await fetch('/api/profile/avatar', {
+        const res = await fetch(`${API_BASE}/profile/avatar`, {
           method: 'PUT',
           headers: { 
             'Content-Type': 'application/json',

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
+import { API_BASE } from '@/lib/api';
 
 interface GamificationProfile {
   xp: number;
@@ -15,7 +16,7 @@ export function GamificationWidget() {
   useEffect(() => {
     const fetchGamification = async () => {
       try {
-        const res = await fetch('/api/gamification/profile', {
+        const res = await fetch(`${API_BASE}/gamification/profile`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         const data = await res.json();

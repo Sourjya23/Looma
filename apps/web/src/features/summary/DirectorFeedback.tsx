@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { Submission } from 'shared-types';
+import { API_BASE } from '@/lib/api';
 
 interface DirectorFeedbackProps {
   submission: Submission;
@@ -16,7 +17,7 @@ export function DirectorFeedback({ submission, token }: DirectorFeedbackProps) {
   useEffect(() => {
     const checkExisting = async () => {
       try {
-        const res = await fetch(`/api/submissions/${submission.id}/director-analysis`, {
+        const res = await fetch(`${API_BASE}/submissions/${submission.id}/director-analysis`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.ok) {
@@ -38,7 +39,7 @@ export function DirectorFeedback({ submission, token }: DirectorFeedbackProps) {
     if (state === 'ANALYZING') {
       interval = setInterval(async () => {
         try {
-          const res = await fetch(`/api/submissions/${submission.id}/director-analysis`, {
+          const res = await fetch(`${API_BASE}/submissions/${submission.id}/director-analysis`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           if (res.ok) {
@@ -61,7 +62,7 @@ export function DirectorFeedback({ submission, token }: DirectorFeedbackProps) {
     setState('ANALYZING');
     setErrorMsg('');
     try {
-      const res = await fetch(`/api/submissions/${submission.id}/analyze-director`, {
+      const res = await fetch(`${API_BASE}/submissions/${submission.id}/analyze-director`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`

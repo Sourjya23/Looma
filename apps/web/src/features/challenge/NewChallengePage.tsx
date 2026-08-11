@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { ChallengePreview } from '../challenge/ChallengePreview';
+import { API_BASE } from '@/lib/api';
 
 export function NewChallengePage() {
   const { token } = useAuth();
@@ -10,7 +11,7 @@ export function NewChallengePage() {
     if (!token) return;
 
     try {
-      const res = await fetch('/api/sessions', {
+      const res = await fetch(`${API_BASE}/sessions`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

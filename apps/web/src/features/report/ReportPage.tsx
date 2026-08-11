@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import html2pdf from 'html2pdf.js';
 import toast from 'react-hot-toast';
+import { API_BASE } from '@/lib/api';
 
 export function ReportPage() {
   const { submissionId } = useParams<{ submissionId: string }>();
@@ -22,7 +23,7 @@ export function ReportPage() {
         // Since we don't have a getSubmission by ID yet, we fetch session and find it
         // Wait, we need the session ID to fetch session. Let's create a quick endpoint or fetch session if we have sessionId.
         // The user said redirect to `/report/:submissionId`. We need to fetch the submission directly.
-        const res = await fetch(`/api/sessions/submissions/${submissionId}`, {
+        const res = await fetch(`${API_BASE}/sessions/submissions/${submissionId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         const data = await res.json();

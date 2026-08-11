@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import toast from 'react-hot-toast';
 import type { WritingSession, Challenge, Submission } from 'shared-types';
+import { API_BASE } from '@/lib/api';
 
 type SessionComplete = WritingSession & { challenge?: Challenge; submissions?: Submission[] };
 
@@ -23,7 +24,7 @@ export function SummaryPage() {
       if (!token || !sessionId) return;
       
       try {
-        const res = await fetch(`/api/sessions/${sessionId}`, {
+        const res = await fetch(`${API_BASE}/sessions/${sessionId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         const data = await res.json();
@@ -58,7 +59,7 @@ export function SummaryPage() {
       if (!currentSub) return;
       
       try {
-        const res = await fetch(`/api/submissions/${currentSub.id}/analysis-status`, {
+        const res = await fetch(`${API_BASE}/submissions/${currentSub.id}/analysis-status`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         const data = await res.json();
@@ -101,7 +102,7 @@ export function SummaryPage() {
 
     setAnalysisState('ANALYZING');
     try {
-      await fetch(`/api/submissions/${currentSub.id}/analyze-all`, {
+      await fetch(`${API_BASE}/submissions/${currentSub.id}/analyze-all`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` }
       });

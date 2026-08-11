@@ -5,6 +5,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import { useAuth } from '../auth/AuthContext';
 import type { WritingSession, Submission } from 'shared-types';
+import { API_BASE } from '@/lib/api';
 
 export function RevisionEditorPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -51,7 +52,7 @@ export function RevisionEditorPage() {
     const fetchSession = async () => {
       if (!token || !sessionId) return;
       try {
-        const res = await fetch(`/api/sessions/${sessionId}`, {
+        const res = await fetch(`${API_BASE}/sessions/${sessionId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         const data = await res.json();
@@ -92,7 +93,7 @@ export function RevisionEditorPage() {
       if (content === '<p></p>' || content === session?.draftRevisionContent) return;
       
       try {
-        await fetch(`/api/sessions/${sessionId}/autosave-revision`, {
+        await fetch(`${API_BASE}/sessions/${sessionId}/autosave-revision`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -117,7 +118,7 @@ export function RevisionEditorPage() {
       const text = editor.getText();
       const characterCount = text.length;
 
-      const res = await fetch(`/api/sessions/${sessionId}/submit-revision`, {
+      const res = await fetch(`${API_BASE}/sessions/${sessionId}/submit-revision`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
