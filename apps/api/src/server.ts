@@ -23,7 +23,7 @@ const app = express();
 
 // ── Middleware ──
 app.use(cors({
-  origin: ['http://localhost:5173'],
+  origin: env.CORS_ORIGIN.split(','), // Split by comma just in case of multiple origins, otherwise it works for one
   credentials: true,
 }));
 app.use(express.json({ limit: '10mb' })); // Increased limit for base64 images
