@@ -18,6 +18,7 @@ export function SummaryPage() {
   const [activeVersion, setActiveVersion] = useState<number>(1);
   const [analysisState, setAnalysisState] = useState<'IDLE' | 'ANALYZING' | 'COMPLETED'>('IDLE');
   const [checkingStatus, setCheckingStatus] = useState(true);
+  const [pollCount, setPollCount] = useState(0);
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -70,8 +71,10 @@ export function SummaryPage() {
             if (interval) clearInterval(interval);
           } else if (english || story || director) {
             setAnalysisState('ANALYZING');
+            setPollCount(p => p + 1);
           } else {
             setAnalysisState(prev => prev === 'ANALYZING' ? 'ANALYZING' : 'IDLE');
+            setPollCount(p => p + 1);
           }
         }
       } catch (e) {
@@ -101,6 +104,7 @@ export function SummaryPage() {
     if (!currentSub) return;
 
     setAnalysisState('ANALYZING');
+    setPollCount(0);
     try {
       await fetch(`${API_BASE}/submissions/${currentSub.id}/analyze-all`, {
         method: 'POST',
@@ -307,6 +311,11 @@ export function SummaryPage() {
                  <div className="spinner"></div>
                  <p style={{ color: 'var(--color-text-primary)', fontWeight: 500 }}>AI is reading your story...</p>
                  <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>This usually takes about 7-10 seconds. Please wait.</p>
+                 {pollCount > 5 && (
+                   <button onClick={handleAnalyzeAll} className="btn-pill btn-pill-outline" style={{ marginTop: '1rem' }}>
+                     Taking too long? Retry Analysis
+                   </button>
+                 )}
                </div>
             ) : (
               <div>

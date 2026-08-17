@@ -9,7 +9,13 @@ const connection = new IORedis(env.REDIS_URL, {
   maxRetriesPerRequest: null,
 });
 
-export const aiQueue = new Queue('ai-analysis', { connection });
+export const aiQueue = new Queue('ai-analysis', { 
+  connection,
+  defaultJobOptions: {
+    attempts: 3,
+    backoff: { type: 'exponential', delay: 2000 }
+  }
+});
 
 interface AIJobData {
   submissionId: string;
@@ -104,7 +110,7 @@ export const aiWorker = new Worker('ai-analysis', async (job: Job<AIJobData>) =>
   }
 }, { 
   connection,
-  concurrency: 3, // Since we have 3 roles, we can process 3 concurrently per worker
+  concurrency: 1, // Process one by one to avoid Groq burst rate limits
 });
 
 aiWorker.on('completed', (job) => {
