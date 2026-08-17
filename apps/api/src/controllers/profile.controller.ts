@@ -54,7 +54,9 @@ export const uploadAvatar = async (req: Request, res: Response) => {
     const filePath = path.join(avatarsDir, fileName);
     
     await fs.writeFile(filePath, buffer);
-    const avatarUrl = `/public/avatars/${fileName}`;
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+    const host = req.get('host');
+    const avatarUrl = `${protocol}://${host}/public/avatars/${fileName}`;
 
     // Update user in DB
     await prisma.user.update({

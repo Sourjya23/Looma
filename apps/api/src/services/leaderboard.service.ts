@@ -53,7 +53,7 @@ export class LeaderboardService {
           // Get streak/level data from DB for all users at once
           const dbUsers = await prisma.user.findMany({
             where: { id: { in: userIds } },
-            select: { id: true, currentStreak: true, longestStreak: true, level: true, username: true, displayName: true, avatarUrl: true }
+            select: { id: true, currentStreak: true, longestStreak: true, level: true, username: true, displayName: true, avatarUrl: true, leaderboardOptIn: true }
           });
           const dbMap = new Map(dbUsers.map((u: any) => [u.id, u]));
           
@@ -61,6 +61,8 @@ export class LeaderboardService {
             const userId = topUsers[i];
             const score = parseInt(topUsers[i + 1]);
             const dbUser: any = dbMap.get(userId);
+            
+            if (dbUser && dbUser.leaderboardOptIn === false) continue;
             
             results.push({
               rank: (i / 2) + 1,
@@ -227,4 +229,19 @@ export class LeaderboardService {
       nearby: []
     };
   }
+
+  static async removeUser(userId: string) {
+    if (!redis) return;
+    try {
+      const weeklyKey = getWeeklyKey();
+      const multi = redis.multi();
+      multi.zrem(ALL_TIME_KEY, userId);
+      multi.zrem(weeklyKey, userId);
+      multi.hdel('users:display_names', userId);
+      await multi.exec();
+    } catch (err) {
+      console.error('Redis leaderboard remove failed (Safe to ignore)', err);
+    }
+  }
 }
+
