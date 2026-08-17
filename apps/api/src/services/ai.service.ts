@@ -23,8 +23,7 @@ export class AIService {
       const completion = await groq.chat.completions.create({
         messages: [{ role: 'user', content: prompt }],
         model: MODEL_NAME,
-        temperature: 0.2,
-        response_format: { type: 'json_object' }
+        temperature: 0.2
       });
 
       const responseContent = completion.choices[0]?.message?.content;
@@ -47,8 +46,7 @@ export class AIService {
       const completion = await groq.chat.completions.create({
         messages: [{ role: 'user', content: prompt }],
         model: MODEL_NAME,
-        temperature: 0.3,
-        response_format: { type: 'json_object' }
+        temperature: 0.3
       });
 
       const responseContent = completion.choices[0]?.message?.content;
@@ -71,8 +69,7 @@ export class AIService {
       const completion = await groq.chat.completions.create({
         messages: [{ role: 'user', content: prompt }],
         model: MODEL_NAME,
-        temperature: 0.3,
-        response_format: { type: 'json_object' }
+        temperature: 0.3
       });
 
       const responseContent = completion.choices[0]?.message?.content;
@@ -94,8 +91,7 @@ export class AIService {
       const completion = await groq.chat.completions.create({
         messages: [{ role: 'user', content: prompt }],
         model: MODEL_NAME,
-        temperature: 0.7,
-        response_format: { type: 'json_object' }
+        temperature: 0.7
       });
 
       const responseContent = completion.choices[0]?.message?.content;
@@ -118,8 +114,7 @@ export class AIService {
       const completion = await groq.chat.completions.create({
         messages: [{ role: 'user', content: prompt }],
         model: MODEL_NAME,
-        temperature: 0.7,
-        response_format: { type: 'json_object' }
+        temperature: 0.7
       });
 
       const responseContent = completion.choices[0]?.message?.content;
