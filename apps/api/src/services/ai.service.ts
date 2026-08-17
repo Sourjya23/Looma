@@ -9,9 +9,29 @@ const MODEL_NAME = process.env.MODEL_NAME || 'qwen/qwen3.6-27b';
 export class AIService {
   private static sanitizeJSON(content: string): string {
     let clean = content.trim();
-    if (clean.startsWith('```json')) clean = clean.substring(7);
-    else if (clean.startsWith('```')) clean = clean.substring(3);
-    if (clean.endsWith('```')) clean = clean.slice(0, -3);
+    
+    // Remove <think>...</think> reasoning blocks
+    clean = clean.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+
+    // Find the first and last curly brace or bracket to extract pure JSON
+    const firstBrace = clean.indexOf('{');
+    const firstBracket = clean.indexOf('[');
+    
+    let startIdx = -1;
+    let endIdx = -1;
+    
+    if (firstBrace !== -1 && (firstBracket === -1 || firstBrace < firstBracket)) {
+        startIdx = firstBrace;
+        endIdx = clean.lastIndexOf('}');
+    } else if (firstBracket !== -1 && (firstBrace === -1 || firstBracket < firstBrace)) {
+        startIdx = firstBracket;
+        endIdx = clean.lastIndexOf(']');
+    }
+
+    if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+        clean = clean.substring(startIdx, endIdx + 1);
+    }
+    
     return clean.trim();
   }
 
