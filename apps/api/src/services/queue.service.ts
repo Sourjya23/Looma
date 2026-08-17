@@ -4,13 +4,14 @@ import { env } from '../config/env.js';
 import { AIService } from './ai.service.js';
 import { prisma } from '../config/database.js';
 
-// Setup connection options for BullMQ
-const connection = new IORedis(env.REDIS_URL, {
+const connectionOptions = {
   maxRetriesPerRequest: null,
-});
+};
+const queueConnection = new IORedis(env.REDIS_URL, connectionOptions);
+const workerConnection = new IORedis(env.REDIS_URL, connectionOptions);
 
 export const aiQueue = new Queue('ai-analysis', { 
-  connection,
+  connection: queueConnection,
   defaultJobOptions: {
     attempts: 3,
     backoff: { type: 'exponential', delay: 2000 }
@@ -26,6 +27,7 @@ interface AIJobData {
 
 export const aiWorker = new Worker('ai-analysis', async (job: Job<AIJobData>) => {
   const { submissionId, content, challengePrompt, role } = job.data;
+  console.log(`[Worker] Started job ${job.id} for role: ${role}`);
   
   try {
     switch (role) {
@@ -104,12 +106,13 @@ export const aiWorker = new Worker('ai-analysis', async (job: Job<AIJobData>) =>
         });
         break;
     }
-  } catch (err) {
-    console.error(`AI analysis failed for ${role} on submission ${submissionId}`, err);
+    console.log(`[Worker] Completed job ${job.id} for role: ${role}`);
+  } catch (err: any) {
+    console.error(`[Worker Error] AI analysis failed for ${role} on submission ${submissionId}:`, err?.message || err);
     throw err; // triggers bullmq retry
   }
 }, { 
-  connection,
+  connection: workerConnection,
   concurrency: 1, // Process one by one to avoid Groq burst rate limits
 });
 

@@ -7,6 +7,14 @@ const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 const MODEL_NAME = process.env.MODEL_NAME || 'llama3-8b-8192';
 
 export class AIService {
+  private static sanitizeJSON(content: string): string {
+    let clean = content.trim();
+    if (clean.startsWith('```json')) clean = clean.substring(7);
+    else if (clean.startsWith('```')) clean = clean.substring(3);
+    if (clean.endsWith('```')) clean = clean.slice(0, -3);
+    return clean.trim();
+  }
+
   static async analyzeEnglish(submissionId: string, content: string, challengePrompt: string): Promise<EnglishAnalysisType> {
     try {
       const schemaJson = JSON.stringify(zodToJsonSchema(EnglishAnalysisSchema as any));
@@ -22,7 +30,7 @@ export class AIService {
       const responseContent = completion.choices[0]?.message?.content;
       if (!responseContent) throw new Error("Groq returned empty response");
 
-      const json = JSON.parse(responseContent);
+      const json = JSON.parse(this.sanitizeJSON(responseContent));
       return EnglishAnalysisSchema.parse(json);
       
     } catch (error) {
@@ -46,7 +54,7 @@ export class AIService {
       const responseContent = completion.choices[0]?.message?.content;
       if (!responseContent) throw new Error("Groq returned empty response");
 
-      const json = JSON.parse(responseContent);
+      const json = JSON.parse(this.sanitizeJSON(responseContent));
       return StoryAnalysisSchema.parse(json);
       
     } catch (error) {
@@ -70,7 +78,7 @@ export class AIService {
       const responseContent = completion.choices[0]?.message?.content;
       if (!responseContent) throw new Error("Groq returned empty response");
 
-      const json = JSON.parse(responseContent);
+      const json = JSON.parse(this.sanitizeJSON(responseContent));
       return DirectorAnalysisSchema.parse(json);
       
     } catch (error) {
@@ -93,7 +101,7 @@ export class AIService {
       const responseContent = completion.choices[0]?.message?.content;
       if (!responseContent) throw new Error("Groq returned empty response");
 
-      const json = JSON.parse(responseContent);
+      const json = JSON.parse(this.sanitizeJSON(responseContent));
       return json as string[];
       
     } catch (error) {
@@ -117,7 +125,7 @@ export class AIService {
       const responseContent = completion.choices[0]?.message?.content;
       if (!responseContent) throw new Error("Groq returned empty response");
 
-      const json = JSON.parse(responseContent);
+      const json = JSON.parse(this.sanitizeJSON(responseContent));
       return json;
       
     } catch (error) {
