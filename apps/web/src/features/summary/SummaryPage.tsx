@@ -71,7 +71,7 @@ export function SummaryPage() {
           } else if (english || story || director) {
             setAnalysisState('ANALYZING');
           } else {
-            setAnalysisState('IDLE');
+            setAnalysisState(prev => prev === 'ANALYZING' ? 'ANALYZING' : 'IDLE');
           }
         }
       } catch (e) {
