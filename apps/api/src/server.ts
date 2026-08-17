@@ -42,18 +42,14 @@ const limiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   passOnStoreError: true,
-  store: redis ? new RedisStore({
-    sendCommand: (...args: string[]) => redis!.call(args[0], ...args.slice(1)) as any,
-  }) : undefined, // fallback to memory if redis fails
+  store: undefined, // Removed RedisStore to save Redis requests, falls back to memory
 });
 
 const aiLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 min
   max: 99999999, // Disabled for now
   passOnStoreError: true,
-  store: redis ? new RedisStore({
-    sendCommand: (...args: string[]) => redis!.call(args[0], ...args.slice(1)) as any,
-  }) : undefined,
+  store: undefined, // Removed RedisStore to save Redis requests, falls back to memory
 });
 
 // ── Routes ──
