@@ -46,7 +46,7 @@ export class AIService {
       const completion = await groq.chat.completions.create({
         messages: [{ role: 'user', content: prompt }],
         model: MODEL_NAME,
-        max_tokens: 8000,
+        max_tokens: 4000,
         temperature: 0.2
       });
 
@@ -70,7 +70,7 @@ export class AIService {
       const completion = await groq.chat.completions.create({
         messages: [{ role: 'user', content: prompt }],
         model: MODEL_NAME,
-        max_tokens: 8000,
+        max_tokens: 4000,
         temperature: 0.3
       });
 
@@ -94,7 +94,7 @@ export class AIService {
       const completion = await groq.chat.completions.create({
         messages: [{ role: 'user', content: prompt }],
         model: MODEL_NAME,
-        max_tokens: 8000,
+        max_tokens: 4000,
         temperature: 0.3
       });
 
@@ -117,7 +117,7 @@ export class AIService {
       const completion = await groq.chat.completions.create({
         messages: [{ role: 'user', content: prompt }],
         model: MODEL_NAME,
-        max_tokens: 8000,
+        max_tokens: 4000,
         temperature: 0.7
       });
 
@@ -141,7 +141,7 @@ export class AIService {
       const completion = await groq.chat.completions.create({
         messages: [{ role: 'user', content: prompt }],
         model: MODEL_NAME,
-        max_tokens: 8000,
+        max_tokens: 4000,
         temperature: 0.7
       });
 
