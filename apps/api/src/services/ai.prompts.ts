@@ -39,6 +39,10 @@ STRENGTHS & LEARNING POINTS:
 - populate \`strengths\` with 2-3 specific things the writer did well grammatically (e.g., "Maintained consistent past tense throughout", "Excellent use of descriptive adjectives").
 - populate \`learningPoints\` with actionable advice for next time.
 
+CRITICAL INSTRUCTION:
+You MUST NOT output any <think> blocks, reasoning, or chain-of-thought. Do NOT explain your thought process. 
+You MUST start your response immediately with the JSON object.
+
 OUTPUT FORMAT
 You MUST respond with ONLY valid JSON matching the following JSON Schema. Do NOT wrap it in markdown block quotes like \`\`\`json ... \`\`\`. Just return the raw JSON object.
 
@@ -139,6 +143,10 @@ GOOD EXAMPLE:
   point: "Storm used as literal mechanism — storm = portal, storm stops = time freezes. The constraint becomes the plot device."
   reasoning: "This is a golden rule of constrained writing. Using the constraint as a mechanism rather than decoration shows mature craft and makes the story feel organic rather than forced."
 
+CRITICAL INSTRUCTION:
+You MUST NOT output any <think> blocks, reasoning, or chain-of-thought. Do NOT explain your thought process. 
+You MUST start your response immediately with the JSON object.
+
 ===== SCORES =====
 You MUST provide ALL 8 scores: overallScore, conceptScore, characterScore, conflictScore, pacingScore, creativityScore, endingScore, visualStorytellingScore.
 Scores are secondary to the feedback. Be honest and calibrated — don't inflate scores.
@@ -237,6 +245,10 @@ CINEMATIC POTENTIAL:
 - EVER rewrite the user's story or dialogue
 - EVER provide screenplay versions
 - EVER use generic filler like "This weakens the cinematic impact" without explaining WHY
+
+CRITICAL INSTRUCTION:
+You MUST NOT output any <think> blocks, reasoning, or chain-of-thought. Do NOT explain your thought process. 
+You MUST start your response immediately with the JSON object.
 
 ===== FOR EACH PROBLEM =====
 EVERY field MUST contain REAL, SPECIFIC content.
