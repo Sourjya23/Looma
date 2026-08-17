@@ -32,6 +32,7 @@ export class AIService {
         clean = clean.substring(startIdx, endIdx + 1);
     } else {
         console.error("[AIService] Failed to find JSON boundaries in model output. Raw output was:", content.substring(0, 500) + "...");
+        throw new Error("Failed to extract JSON from AI response: Missing braces/brackets");
     }
     
     return clean.trim();
@@ -45,6 +46,7 @@ export class AIService {
       const completion = await groq.chat.completions.create({
         messages: [{ role: 'user', content: prompt }],
         model: MODEL_NAME,
+        max_tokens: 8000,
         temperature: 0.2
       });
 
@@ -68,6 +70,7 @@ export class AIService {
       const completion = await groq.chat.completions.create({
         messages: [{ role: 'user', content: prompt }],
         model: MODEL_NAME,
+        max_tokens: 8000,
         temperature: 0.3
       });
 
@@ -91,6 +94,7 @@ export class AIService {
       const completion = await groq.chat.completions.create({
         messages: [{ role: 'user', content: prompt }],
         model: MODEL_NAME,
+        max_tokens: 8000,
         temperature: 0.3
       });
 
@@ -113,6 +117,7 @@ export class AIService {
       const completion = await groq.chat.completions.create({
         messages: [{ role: 'user', content: prompt }],
         model: MODEL_NAME,
+        max_tokens: 8000,
         temperature: 0.7
       });
 
@@ -136,6 +141,7 @@ export class AIService {
       const completion = await groq.chat.completions.create({
         messages: [{ role: 'user', content: prompt }],
         model: MODEL_NAME,
+        max_tokens: 8000,
         temperature: 0.7
       });
 
