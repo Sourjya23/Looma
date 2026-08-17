@@ -4,7 +4,7 @@ import { zodToJsonSchema } from 'zod-to-json-schema';
 import Groq from 'groq-sdk';
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-const MODEL_NAME = process.env.MODEL_NAME || 'llama-3.1-8b-instant';
+const MODEL_NAME = process.env.MODEL_NAME || 'qwen/qwen3.6-27b';
 
 export class AIService {
   private static sanitizeJSON(content: string): string {
