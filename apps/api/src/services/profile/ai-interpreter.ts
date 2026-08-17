@@ -16,21 +16,13 @@ export const generateAIProfileInterpretation = async (userId: string, profile: a
       }))
     });
 
-    const PYTHON_AI_SERVICE_URL = process.env.PYTHON_AI_SERVICE_URL || 'http://localhost:8000';
-    // Call the Python AI service
-    const res = await fetch(`${PYTHON_AI_SERVICE_URL}/interpret-profile`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ facts: aggregatedFacts })
-    });
-
-    if (!res.ok) {
-      console.error('Failed to get AI profile interpretation from Python service');
+    // Call the Groq AI service directly instead of external Python service
+    const interpretation = await AIService.interpretProfile(aggregatedFacts);
+    
+    if (!interpretation) {
+      console.error('Failed to get AI profile interpretation from AIService');
       return null;
     }
-
-    const data = await res.json();
-    const interpretation = data.interpretation;
 
     // Save interpretation to DB
     await prisma.writingProfile.update({
