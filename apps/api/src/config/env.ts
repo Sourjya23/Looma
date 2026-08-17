@@ -11,7 +11,7 @@ const envSchema = z.object({
   API_HOST: z.string().default('localhost'),
   AI_SERVICE_URL: z.string().url().default('http://localhost:8000'),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  REDIS_URL: z.string().url().default('redis://localhost:6379'),
+  REDIS_URL: z.string().url().default('redis://red-da1krdr7uimc73esfndg:6379'),
   CORS_ORIGIN: z.string().default('http://localhost:5173'),
 });
 
