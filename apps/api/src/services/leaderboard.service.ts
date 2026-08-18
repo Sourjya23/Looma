@@ -101,33 +101,50 @@ export class LeaderboardService {
           
           const nearby = await redis.zrevrange(key, start, end, 'WITHSCORES');
           
-          // Get DB data for this user
-          const dbUser = await prisma.user.findUnique({
-            where: { id: userId },
-            select: { currentStreak: true, longestStreak: true, level: true, avatarUrl: true }
+          const nearbyUserIds = [];
+          for (let i = 0; i < nearby.length; i += 2) {
+            nearbyUserIds.push(nearby[i]);
+          }
+
+          // Get DB data for nearby users
+          const dbUsers = await prisma.user.findMany({
+            where: { id: { in: nearbyUserIds } },
+            select: { id: true, currentStreak: true, longestStreak: true, level: true, username: true, displayName: true, avatarUrl: true, leaderboardOptIn: true }
           });
+          const dbMap = new Map(dbUsers.map((u: any) => [u.id, u]));
           
           const nearbyResults = [];
           for (let i = 0; i < nearby.length; i += 2) {
             const nId = nearby[i];
             const nScore = parseInt(nearby[i + 1]);
-            const dName = await redis.hget('users:display_names', nId) || 'Anonymous Writer';
+            const dbNUser: any = dbMap.get(nId);
+            
+            if (dbNUser && dbNUser.leaderboardOptIn === false && nId !== userId) continue;
+
+            const dName = dbNUser?.displayName || dbNUser?.username || await redis.hget('users:display_names', nId) || 'Anonymous Writer';
+            
             nearbyResults.push({
               rank: start + (i / 2) + 1,
               userId: nId,
               displayName: dName,
               xp: nScore,
+              level: dbNUser?.level || 1,
+              currentStreak: dbNUser?.currentStreak || 0,
+              longestStreak: dbNUser?.longestStreak || 0,
+              avatarUrl: dbNUser?.avatarUrl || null,
               isMe: nId === userId
             });
           }
+          
+          const myDbUser = dbMap.get(userId) as any;
 
           return {
             rank: rank + 1,
             xp: parseInt(score || '0'),
-            level: dbUser?.level || 1,
-            currentStreak: dbUser?.currentStreak || 0,
-            longestStreak: dbUser?.longestStreak || 0,
-            avatarUrl: dbUser?.avatarUrl || null,
+            level: myDbUser?.level || 1,
+            currentStreak: myDbUser?.currentStreak || 0,
+            longestStreak: myDbUser?.longestStreak || 0,
+            avatarUrl: myDbUser?.avatarUrl || null,
             nearby: nearbyResults
           };
         }

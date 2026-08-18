@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import toast from 'react-hot-toast';
@@ -182,9 +182,8 @@ export function SummaryPage() {
   ];
   const messageIndex = Math.min(Math.floor(pollCount / 2), loadingMessages.length - 1);
 
-  const highlightedContent = useMemo(() => {
-    if (!finalSubmission?.content) return 'No content found.';
-    
+  let highlightedContent = 'No content found.';
+  if (finalSubmission?.content) {
     let content = finalSubmission.content;
     const mistakes = (finalSubmission as any)?.englishAnalysis?.mistakes || [];
     
@@ -209,8 +208,8 @@ export function SummaryPage() {
       content = content.replace(regex, `<span class="mistake-highlight" style="background-color: ${categoryColor}20; border-bottom: 2px dashed ${categoryColor}; cursor: help; padding: 0 0.2rem; border-radius: 0.2rem; transition: background-color 0.2s;" title="Category: ${mistake.category}&#10;Correction: ${mistake.correction}&#10;Why: ${mistake.explanation}" onmouseover="this.style.backgroundColor='${categoryColor}40'" onmouseout="this.style.backgroundColor='${categoryColor}20'">$1</span>`);
     });
     
-    return content;
-  }, [finalSubmission]);
+    highlightedContent = content;
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>

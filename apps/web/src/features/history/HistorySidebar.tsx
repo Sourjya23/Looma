@@ -8,10 +8,9 @@ interface HistorySidebarProps {
   onNewWriting: () => void;
   activeSessionId?: string;
   isOpen: boolean;
-  onToggle: () => void;
 }
 
-export function HistorySidebar({ token, onNewWriting, activeSessionId, isOpen, onToggle }: HistorySidebarProps) {
+export function HistorySidebar({ token, onNewWriting, activeSessionId, isOpen }: HistorySidebarProps) {
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -258,16 +257,8 @@ export function HistorySidebar({ token, onNewWriting, activeSessionId, isOpen, o
     }}>
       
       {/* Sidebar Header (Matches Topbar Height) */}
-      <div style={{ height: '80px', padding: '0 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--color-border)', minWidth: '280px' }}>
-        <button 
-          onClick={onToggle}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.5rem', borderRadius: '0.25rem', marginRight: '0.5rem' }}
-          title="Close Sidebar"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line>
-          </svg>
-        </button>
+      <div style={{ height: '80px', padding: '0 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', borderBottom: '1px solid var(--color-border)', minWidth: '280px' }}>
+
         <button 
           onClick={() => navigate('/dashboard')}
           style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: '0.75rem' }}

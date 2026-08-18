@@ -66,28 +66,60 @@ export function ProfilePage() {
     const reader = new FileReader();
     reader.onload = async (event) => {
       const base64 = event.target?.result as string;
-      setUploadingAvatar(true);
-      try {
-        const res = await fetch(`${API_BASE}/profile/avatar`, {
-          method: 'PUT',
-          headers: { 
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}` 
-          },
-          body: JSON.stringify({ avatar: base64 })
-        });
-        const data = await res.json();
-        if (data.success && data.data.avatarUrl) {
-          updateUser({ avatarUrl: data.data.avatarUrl });
-          toast.success('Avatar updated successfully!');
+      
+      const img = new Image();
+      img.onload = async () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 150;
+        const MAX_HEIGHT = 150;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
         } else {
-          toast.error(data.message || 'Failed to update avatar');
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
         }
-      } catch (err) {
-        toast.error('Error uploading avatar');
-      } finally {
-        setUploadingAvatar(false);
-      }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+
+          setUploadingAvatar(true);
+          try {
+            const res = await fetch(`${API_BASE}/profile/avatar`, {
+              method: 'PUT',
+              headers: { 
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}` 
+              },
+              body: JSON.stringify({ avatar: compressedBase64 })
+            });
+            const data = await res.json();
+            if (data.success && data.data.avatarUrl) {
+              updateUser({ avatarUrl: data.data.avatarUrl });
+              toast.success('Avatar updated successfully!');
+            } else {
+              toast.error(data.message || 'Failed to update avatar');
+            }
+          } catch (err) {
+            toast.error('Error uploading avatar');
+          } finally {
+            setUploadingAvatar(false);
+          }
+        }
+      };
+      img.src = base64;
     };
     reader.readAsDataURL(file);
   };

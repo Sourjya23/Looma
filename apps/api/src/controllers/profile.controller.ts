@@ -1,7 +1,5 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/database.js';
-import fs from 'fs/promises';
-import path from 'path';
 
 export const getProfile = async (req: Request, res: Response) => {
   try {
@@ -44,27 +42,16 @@ export const uploadAvatar = async (req: Request, res: Response) => {
       return;
     }
 
-    // Extract base64 data (remove data:image/png;base64, prefix)
-    const base64Data = avatar.replace(/^data:image\/\w+;base64,/, "");
-    const buffer = Buffer.from(base64Data, 'base64');
-    
-    // Save to public/avatars folder
-    const fileName = `${userId}_${Date.now()}.jpg`;
-    const avatarsDir = path.join(process.cwd(), 'public', 'avatars');
-    const filePath = path.join(avatarsDir, fileName);
-    
-    await fs.writeFile(filePath, buffer);
-    const avatarUrl = `/public/avatars/${fileName}`;
-
-    // Update user in DB
+    // Save directly to DB as a base64 Data URI
+    // The frontend compresses it to ~5KB so it's perfectly safe.
     await prisma.user.update({
       where: { id: userId },
-      data: { avatarUrl }
+      data: { avatarUrl: avatar }
     });
 
     res.json({
       success: true,
-      data: { avatarUrl }
+      data: { avatarUrl: avatar }
     });
   } catch (error) {
     console.error('Error uploading avatar:', error);
