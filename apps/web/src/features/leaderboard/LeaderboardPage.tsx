@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { API_BASE, getAvatarUrl } from '@/lib/api';
-import { LeaderboardRow } from '@/types/leaderboard';
 
 export function LeaderboardPage() {
   const { token, user } = useAuth();
