@@ -53,7 +53,8 @@ export class AIService {
         messages: [{ role: 'user', content: prompt }],
         model: MODEL_NAME,
         max_tokens: 4000,
-        temperature: 0.2
+        temperature: 0.2,
+        response_format: { type: 'json_object' }
       });
 
       const responseContent = completion.choices[0]?.message?.content;
@@ -77,7 +78,8 @@ export class AIService {
         messages: [{ role: 'user', content: prompt }],
         model: MODEL_NAME,
         max_tokens: 4000,
-        temperature: 0.3
+        temperature: 0.3,
+        response_format: { type: 'json_object' }
       });
 
       const responseContent = completion.choices[0]?.message?.content;
@@ -101,7 +103,8 @@ export class AIService {
         messages: [{ role: 'user', content: prompt }],
         model: MODEL_NAME,
         max_tokens: 4000,
-        temperature: 0.3
+        temperature: 0.3,
+        response_format: { type: 'json_object' }
       });
 
       const responseContent = completion.choices[0]?.message?.content;
@@ -124,7 +127,8 @@ export class AIService {
         messages: [{ role: 'user', content: prompt }],
         model: MODEL_NAME,
         max_tokens: 4000,
-        temperature: 0.7
+        temperature: 0.7,
+        response_format: { type: 'json_object' }
       });
 
       const responseContent = completion.choices[0]?.message?.content;
@@ -148,7 +152,8 @@ export class AIService {
         messages: [{ role: 'user', content: prompt }],
         model: MODEL_NAME,
         max_tokens: 4000,
-        temperature: 0.7
+        temperature: 0.7,
+        response_format: { type: 'json_object' }
       });
 
       const responseContent = completion.choices[0]?.message?.content;
