@@ -5,7 +5,7 @@ import Groq from 'groq-sdk';
 import { jsonrepair } from 'jsonrepair';
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-const MODEL_NAME = process.env.MODEL_NAME || 'openai/gpt-oss-120b';
+const MODEL_NAME = process.env.MODEL_NAME || 'llama-3.3-70b-versatile';
 
 export class AIService {
   private static sanitizeJSON(content: string): string {
