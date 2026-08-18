@@ -253,6 +253,12 @@ export const startSession = async (req: Request, res: Response) => {
       data: { 
         status: 'running',
         startedAt: new Date()
+      },
+      include: {
+        challenge: true,
+        submissions: {
+          orderBy: { version: 'asc' }
+        }
       }
     });
 
