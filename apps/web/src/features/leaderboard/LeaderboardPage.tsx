@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
-import { API_BASE } from '@/lib/api';
+import { API_BASE, getAvatarUrl } from '@/lib/api';
+import { LeaderboardRow } from '@/types/leaderboard';
 
 export function LeaderboardPage() {
   const { token, user } = useAuth();
@@ -79,7 +80,7 @@ export function LeaderboardPage() {
         </div>
         
         {row.avatarUrl ? (
-          <img src={`http://localhost:3001${row.avatarUrl}`} alt={row.displayName} style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
+          <img src={getAvatarUrl(row.avatarUrl)} alt={row.displayName} style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
         ) : (
           <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-secondary)', fontWeight: 600 }}>
             {row.displayName?.charAt(0).toUpperCase()}

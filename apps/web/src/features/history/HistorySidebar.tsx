@@ -166,7 +166,7 @@ export function HistorySidebar({ token, onNewWriting, activeSessionId }: History
                 <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div style={{ fontWeight: 500, color: 'var(--color-text-primary)', marginBottom: '0.25rem', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden', paddingRight: '40px' }}>
                     {item.challenge?.genre ? `[${item.challenge.genre}] ` : ''} 
-                    {item.challenge?.prompt || 'Untitled Story'}
+                    {item.title || submission?.title || 'Untitled Story'}
                   </div>
                   
                   {/* Actions Container */}

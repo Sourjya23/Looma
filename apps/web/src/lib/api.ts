@@ -1,5 +1,12 @@
 export const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
+export const getAvatarUrl = (avatarUrl?: string | null) => {
+  if (!avatarUrl) return '';
+  if (avatarUrl.startsWith('http') || avatarUrl.startsWith('data:')) return avatarUrl;
+  const baseUrl = API_BASE.endsWith('/api') ? API_BASE.slice(0, -4) : API_BASE;
+  return `${baseUrl}${avatarUrl}`;
+};
+
 interface FetchOptions extends Omit<RequestInit, 'body'> {
   body?: unknown;
 }

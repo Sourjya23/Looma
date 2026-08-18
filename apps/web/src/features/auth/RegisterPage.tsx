@@ -117,7 +117,12 @@ export function RegisterPage() {
                 disabled={loading}
                 style={{ width: '100%', padding: '1rem', backgroundColor: '#1d4ed8', color: '#fff', border: 'none', borderRadius: '0.75rem', fontWeight: 600, cursor: 'pointer', marginTop: '0.5rem', fontSize: '0.95rem' }}
               >
-                {loading ? 'Signing up...' : 'Create Account'}
+                {loading ? (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                    <div className="spinner" style={{ width: '18px', height: '18px', borderWidth: '2px', borderColor: 'rgba(255,255,255,0.3)', borderTopColor: '#fff' }}></div>
+                    <span>Signing up...</span>
+                  </div>
+                ) : 'Create Account'}
               </button>
             </form>
           </div>

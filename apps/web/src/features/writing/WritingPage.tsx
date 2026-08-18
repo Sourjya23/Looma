@@ -115,6 +115,7 @@ export function WritingPage() {
   }, [isPaused, editor]);
 
   const [targetMarkerInserted, setTargetMarkerInserted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const calculateElapsed = (sessionData: any) => {
     if (!sessionData.startedAt) return 0;
@@ -261,7 +262,8 @@ export function WritingPage() {
   };
 
   const handleSubmit = async () => {
-    if (!editor || !session || !token) return;
+    if (!editor || !session || !token || isSubmitting) return;
+    setIsSubmitting(true);
 
     try {
       const text = editor.getText();
@@ -291,6 +293,8 @@ export function WritingPage() {
       }
     } catch (e) {
       toast.error('Error connecting to server');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -359,8 +363,13 @@ export function WritingPage() {
           <button onClick={togglePause} className="btn-pill btn-pill-outline" style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}>
             {isPaused ? 'Resume' : 'Pause'}
           </button>
-          <button onClick={handleSubmit} className="btn-pill btn-pill-dark" style={{ padding: '0.5rem 1.5rem', fontSize: '0.875rem' }}>
-            Finish
+          <button onClick={handleSubmit} disabled={isSubmitting} className="btn-pill btn-pill-dark" style={{ padding: '0.5rem 1.5rem', fontSize: '0.875rem', opacity: isSubmitting ? 0.7 : 1 }}>
+            {isSubmitting ? (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                <div className="spinner" style={{ width: '14px', height: '14px', borderWidth: '2px', borderColor: 'rgba(255,255,255,0.3)', borderTopColor: '#fff' }}></div>
+                <span>Submitting...</span>
+              </div>
+            ) : 'Finish'}
           </button>
         </div>
       </header>

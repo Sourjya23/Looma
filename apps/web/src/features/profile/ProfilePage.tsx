@@ -5,7 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import { AchievementsGrid } from './AchievementsGrid';
 import { LeaderboardSettings } from './LeaderboardSettings';
 import toast from 'react-hot-toast';
-import { API_BASE } from '@/lib/api';
+import { API_BASE, getAvatarUrl } from '@/lib/api';
 
 export function ProfilePage() {
   const { token, user, updateUser } = useAuth();
@@ -113,7 +113,7 @@ export function ProfilePage() {
           }}
         >
           {user?.avatarUrl ? (
-            <img src={`http://localhost:3001${user.avatarUrl}`} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <img src={getAvatarUrl(user.avatarUrl)} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           ) : (
             <span style={{ fontSize: '2rem', color: 'var(--color-text-muted)' }}>
               {user?.displayName?.charAt(0)?.toUpperCase() || 'U'}
