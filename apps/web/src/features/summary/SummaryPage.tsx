@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import toast from 'react-hot-toast';
@@ -173,6 +173,45 @@ export function SummaryPage() {
   const activeMinutes = session.activeTime > 0 ? (session.activeTime / 60) : 1;
   const wpm = Math.round(wordCount / activeMinutes);
 
+  const loadingMessages = [
+    "AI is reading your story...",
+    "Evaluating character arcs...",
+    "Checking grammar and vocabulary...",
+    "Analyzing pacing and plot twists...",
+    "Generating holistic feedback..."
+  ];
+  const messageIndex = Math.min(Math.floor(pollCount / 2), loadingMessages.length - 1);
+
+  const highlightedContent = useMemo(() => {
+    if (!finalSubmission?.content) return 'No content found.';
+    
+    let content = finalSubmission.content;
+    const mistakes = (finalSubmission as any)?.englishAnalysis?.mistakes || [];
+    
+    // Sort mistakes by length descending to avoid partial word replacements if they overlap
+    const sortedMistakes = [...mistakes].sort((a: any, b: any) => (b.originalText?.length || 0) - (a.originalText?.length || 0));
+    
+    sortedMistakes.forEach((mistake: any) => {
+      if (!mistake.originalText || mistake.originalText.length < 3) return; // avoid matching single letters
+      
+      // Escape regex chars
+      const escapedText = mistake.originalText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      
+      // Using negative lookbehind/lookahead to avoid matching inside HTML tags could be complex.
+      // But we can just do a basic replace for now since LLM returns exact text.
+      const regex = new RegExp(`(?<!<[^>]*)(${escapedText})`, 'gi'); 
+      
+      const categoryColor = mistake.category === 'grammar' ? '#ef4444' : 
+                            mistake.category === 'spelling' ? '#eab308' : 
+                            mistake.category === 'word_choice' ? '#3b82f6' : '#8b5cf6';
+                            
+      // We use a custom string replacement that doesn't break if it matches multiple times.
+      content = content.replace(regex, `<span class="mistake-highlight" style="background-color: ${categoryColor}20; border-bottom: 2px dashed ${categoryColor}; cursor: help; padding: 0 0.2rem; border-radius: 0.2rem; transition: background-color 0.2s;" title="Category: ${mistake.category}&#10;Correction: ${mistake.correction}&#10;Why: ${mistake.explanation}" onmouseover="this.style.backgroundColor='${categoryColor}40'" onmouseout="this.style.backgroundColor='${categoryColor}20'">$1</span>`);
+    });
+    
+    return content;
+  }, [finalSubmission]);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       <main className="section-container animate-fade-in-up" style={{ flex: 1, paddingTop: 'clamp(2rem, 4vw, 4rem)', paddingBottom: 'clamp(4rem, 8vw, 6rem)', width: '100%' }}>
@@ -253,7 +292,7 @@ export function SummaryPage() {
             <div 
               className="story-content"
               style={{ lineHeight: 1.8, fontSize: '1.125rem', color: 'var(--color-text-primary)' }}
-              dangerouslySetInnerHTML={{ __html: finalSubmission?.content || 'No content found.' }}
+              dangerouslySetInnerHTML={{ __html: highlightedContent }}
             />
           </div>
         </div>
@@ -307,11 +346,30 @@ export function SummaryPage() {
                 </div>
               </div>
             ) : analysisState === 'ANALYZING' ? (
-               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', padding: '2rem' }}>
-                 <div className="spinner"></div>
-                 <p style={{ color: 'var(--color-text-primary)', fontWeight: 500 }}>AI is reading your story...</p>
-                 <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>This usually takes about 7-10 seconds. Please wait.</p>
-                 {pollCount > 5 && (
+               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem', padding: '3rem 2rem', background: 'var(--color-bg)', borderRadius: 'var(--radius-lg)' }}>
+                 <div className="spinner" style={{ width: '40px', height: '40px', borderWidth: '3px', borderColor: 'rgba(99, 102, 241, 0.2)', borderTopColor: 'var(--color-primary)' }}></div>
+                 
+                 <div style={{ textAlign: 'center' }}>
+                   <p style={{ color: 'var(--color-text-primary)', fontWeight: 600, fontSize: '1.125rem', marginBottom: '0.5rem', transition: 'all 0.3s ease' }}>
+                     {loadingMessages[messageIndex]}
+                   </p>
+                   <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>
+                     This is a deep analysis and may take a minute.
+                   </p>
+                 </div>
+                 
+                 {/* Progress indicator dots */}
+                 <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+                   {loadingMessages.map((_, idx) => (
+                     <div key={idx} style={{ 
+                       width: '8px', height: '8px', borderRadius: '50%', 
+                       background: idx === messageIndex ? 'var(--color-primary)' : idx < messageIndex ? 'var(--color-success)' : 'var(--color-border)',
+                       transition: 'all 0.3s'
+                     }} />
+                   ))}
+                 </div>
+
+                 {pollCount > 15 && (
                    <button onClick={handleAnalyzeAll} className="btn-pill btn-pill-outline" style={{ marginTop: '1rem' }}>
                      Taking too long? Retry Analysis
                    </button>

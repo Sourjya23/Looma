@@ -107,8 +107,8 @@ export const updateWritingProfile = async (userId: string) => {
   const trends: any[] = [];
 
   for (const [subCategory, data] of Object.entries(mistakeAggregates)) {
-    // Recurring ≠ One-time: Must appear in at least 2 different sessions
-    if (data.sessions.size >= 2) {
+    // Recurring ≠ One-time: Must appear in at least 1 session for early tracking
+    if (data.sessions.size >= 1) {
       
       // Calculate Trend by splitting history into early and recent sessions
       const mistakesOfThisType = allMistakes.filter((m: any) => m.subCategory === subCategory);

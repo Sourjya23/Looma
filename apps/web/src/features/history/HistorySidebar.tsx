@@ -7,9 +7,11 @@ interface HistorySidebarProps {
   token: string;
   onNewWriting: () => void;
   activeSessionId?: string;
+  isOpen: boolean;
+  onToggle: () => void;
 }
 
-export function HistorySidebar({ token, onNewWriting, activeSessionId }: HistorySidebarProps) {
+export function HistorySidebar({ token, onNewWriting, activeSessionId, isOpen, onToggle }: HistorySidebarProps) {
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -243,10 +245,29 @@ export function HistorySidebar({ token, onNewWriting, activeSessionId }: History
   };
 
   return (
-    <div style={{ width: '280px', height: '100vh', borderRight: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg-secondary)', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ 
+      width: isOpen ? '280px' : '0px', 
+      height: '100vh', 
+      borderRight: isOpen ? '1px solid var(--color-border)' : 'none', 
+      backgroundColor: 'var(--color-bg-secondary)', 
+      display: 'flex', 
+      flexDirection: 'column',
+      transition: 'width 0.3s ease, border-right 0.3s ease',
+      overflow: 'hidden',
+      flexShrink: 0
+    }}>
       
       {/* Sidebar Header (Matches Topbar Height) */}
-      <div style={{ height: '80px', padding: '0 1.5rem', display: 'flex', alignItems: 'center', borderBottom: '1px solid var(--color-border)' }}>
+      <div style={{ height: '80px', padding: '0 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--color-border)', minWidth: '280px' }}>
+        <button 
+          onClick={onToggle}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.5rem', borderRadius: '0.25rem', marginRight: '0.5rem' }}
+          title="Close Sidebar"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line>
+          </svg>
+        </button>
         <button 
           onClick={() => navigate('/dashboard')}
           style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: '0.75rem' }}
@@ -258,7 +279,7 @@ export function HistorySidebar({ token, onNewWriting, activeSessionId }: History
         </button>
       </div>
 
-      <div style={{ padding: '1.5rem 1.5rem 0 1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      <div style={{ padding: '1.5rem 1.5rem 0 1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', minWidth: '280px' }}>
         <button 
           onClick={onNewWriting}
           style={{ width: '100%', padding: '0.875rem', backgroundColor: 'var(--color-text-primary)', color: 'var(--color-text-on-dark)', border: 'none', borderRadius: '0.5rem', fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
@@ -276,7 +297,8 @@ export function HistorySidebar({ token, onNewWriting, activeSessionId }: History
         </button>
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem 1rem' }}>
+      {/* Scrollable History List */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', minWidth: '280px' }}>
         {renderGroup('TODAY', today)}
         {renderGroup('YESTERDAY', yesterday)}
         {renderGroup('OLDER', older)}

@@ -70,7 +70,7 @@ export class GamificationService {
 
         // Update leaderboard
         if (updatedUser.leaderboardOptIn) {
-          LeaderboardService.addXP(userId, updatedUser.displayName || 'Anonymous', amount);
+          LeaderboardService.addXP(userId, updatedUser.displayName || updatedUser.username || 'Anonymous Writer', amount);
         }
 
         return { 

@@ -48,15 +48,25 @@ export function ReportPage() {
     }
   }, [submissionId, token]);
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = (withStory: boolean) => {
     const element = reportRef.current;
     if (!element) return;
     
     const opt = {
       margin:       0.5,
-      filename:     `story_report_${submissionId}.pdf`,
+      filename:     withStory ? `full_report_${submissionId}.pdf` : `feedback_report_${submissionId}.pdf`,
       image:        { type: 'jpeg' as const, quality: 0.98 },
-      html2canvas:  { scale: 2 },
+      html2canvas:  { 
+        scale: 2,
+        onclone: (clonedDoc: Document) => {
+          if (!withStory) {
+            const storyNode = clonedDoc.getElementById('report-story-content');
+            if (storyNode) storyNode.style.display = 'none';
+            const storyWordCount = clonedDoc.getElementById('report-story-wordcount');
+            if (storyWordCount) storyWordCount.style.display = 'none';
+          }
+        }
+      },
       jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' as const }
     };
 
@@ -115,8 +125,13 @@ export function ReportPage() {
           <button onClick={handleCopyStory} className="btn-pill btn-pill-outline">
             {copySuccess ? 'Copied!' : 'Copy Story'}
           </button>
-          <button onClick={handleDownloadPDF} className="btn-pill btn-pill-dark">
-            Download PDF
+          <button onClick={() => handleDownloadPDF(false)} className="btn-pill btn-pill-outline" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            Plain Report
+          </button>
+          <button onClick={() => handleDownloadPDF(true)} className="btn-pill btn-pill-dark" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            Report + Story
           </button>
         </div>
       </header>
@@ -125,11 +140,12 @@ export function ReportPage() {
         <div ref={reportRef} style={{ width: '100%', maxWidth: '1300px', backgroundColor: '#fff', padding: '3rem', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
           
           <h1 style={{ fontSize: '2.5rem', marginBottom: '0.5rem', textAlign: 'center' }}>{submission.title || 'Your Story'}</h1>
-          <div style={{ textAlign: 'center', color: 'var(--color-text-secondary)', marginBottom: '3rem' }}>
+          <div id="report-story-wordcount" style={{ textAlign: 'center', color: 'var(--color-text-secondary)', marginBottom: '3rem' }}>
             <span>{submission.wordCount} words</span>
           </div>
 
           <div 
+            id="report-story-content"
             style={{ fontSize: '1.125rem', lineHeight: 1.8, color: 'var(--color-text-primary)', textAlign: 'justify', marginBottom: '4rem' }}
             dangerouslySetInnerHTML={{ __html: submission.content }}
           />

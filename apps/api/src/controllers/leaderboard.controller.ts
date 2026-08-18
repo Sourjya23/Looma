@@ -51,7 +51,7 @@ export const updateOptIn = async (req: Request, res: Response) => {
     });
 
     if (leaderboardOptIn) {
-      LeaderboardService.addXP(userId, updated.displayName || 'Anonymous', 0);
+      LeaderboardService.addXP(userId, updated.displayName || updated.username || 'Anonymous Writer', 0);
     } else {
       LeaderboardService.removeUser(userId);
     }

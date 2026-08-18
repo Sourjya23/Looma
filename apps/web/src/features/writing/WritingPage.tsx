@@ -308,21 +308,24 @@ export function WritingPage() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--color-bg)' }}>
-      {/* Editor Header */}
-      <header style={{
-        padding: '1rem clamp(1rem, 4vw, 3rem)',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        gap: '1rem',
-        borderBottom: '1px solid var(--color-border)',
+      {/* Sticky Top Bar (Header + Prompt) */}
+      <div style={{
         position: 'sticky',
         top: 0,
-        background: 'rgba(245, 245, 247, 0.8)',
+        zIndex: 10,
+        background: 'rgba(245, 245, 247, 0.95)',
         backdropFilter: 'blur(10px)',
-        zIndex: 10
       }}>
+        {/* Editor Header */}
+        <header style={{
+          padding: '1rem clamp(1rem, 4vw, 3rem)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '1rem',
+          borderBottom: '1px solid var(--color-border)'
+        }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
           <button onClick={() => navigate('/dashboard')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem', color: 'var(--color-text-secondary)' }}>
             ←
@@ -372,54 +375,60 @@ export function WritingPage() {
             ) : 'Finish'}
           </button>
         </div>
-      </header>
+        </header>
+        {/* Progress Bar (Moved here inside sticky header) */}
+        {session.wordTarget && (
+          <div style={{ height: '3px', width: '100%', background: 'var(--color-border)' }}>
+            <div style={{
+              height: '100%',
+              width: `${progressPercentage}%`,
+              background: 'var(--color-text-primary)',
+              transition: 'width 0.3s ease-out'
+            }} />
+          </div>
+        )}
+
+        {/* Challenge Prompt Banner */}
+        {session.challenge && (
+          <div style={{
+            padding: '1rem 2rem',
+            borderBottom: '1px solid var(--color-border)',
+            textAlign: 'center',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)'
+          }}>
+            <p style={{ fontSize: '1.05rem', fontWeight: 500, color: 'var(--color-text-primary)', maxWidth: '900px', margin: '0 auto' }}>
+              "{session.challenge.prompt}"
+            </p>
+            {session.challenge.constraint && (
+              <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', marginTop: '0.5rem', fontWeight: 500 }}>
+                Constraint: {session.challenge.constraint}
+              </p>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Font Size Indicator Overlay */}
       {fontSizeIndicator && (
-        <div
+        <div 
           key={fontSizeIndicator.id}
           style={{
             position: 'fixed',
-            bottom: '2rem',
-            right: '2rem',
-            background: 'var(--color-text-primary)',
-            color: 'var(--color-bg)',
-            padding: '0.5rem 1.5rem',
-            borderRadius: '999px',
-            fontSize: '1.25rem',
+            top: '20%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'rgba(0,0,0,0.7)',
+            color: 'white',
+            padding: '1rem 2rem',
+            borderRadius: '2rem',
+            fontSize: '1.5rem',
             fontWeight: 600,
-            animation: 'fadeOutUp 2s ease-out forwards',
             zIndex: 100,
+            animation: 'fadeOut 1.5s ease-out forwards',
             pointerEvents: 'none'
           }}
         >
-          Size: {fontSizeIndicator.size}px
-        </div>
-      )}
-
-      {/* Progress Bar */}
-      {session.wordTarget && (
-        <div style={{ height: '3px', width: '100%', background: 'var(--color-border)' }}>
-          <div style={{
-            height: '100%',
-            width: `${progressPercentage}%`,
-            background: 'var(--color-text-primary)',
-            transition: 'width 0.3s ease-out'
-          }} />
-        </div>
-      )}
-
-      {/* Challenge Prompt Banner */}
-      {session.challenge && (
-        <div style={{
-          background: 'var(--color-bg-input)',
-          padding: '1.5rem 2rem',
-          borderBottom: '1px solid var(--color-border)',
-          textAlign: 'center'
-        }}>
-          <p style={{ fontSize: '1.125rem', fontWeight: 500, color: 'var(--color-text-primary)', maxWidth: '800px', margin: '0 auto' }}>
-            "{session.challenge.prompt}"
-          </p>
+          {fontSizeIndicator.size}px
         </div>
       )}
 

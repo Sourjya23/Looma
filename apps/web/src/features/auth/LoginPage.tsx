@@ -67,7 +67,7 @@ export function LoginPage() {
               <img src="/logo-icon.png" alt="Looma Logo" style={{ height: '32px', width: 'auto' }} />
               <span style={{ fontSize: '1.5rem', fontWeight: 700, letterSpacing: '-0.02em' }}>Looma</span>
             </Link>
-            <h1 style={{ fontSize: '2.5rem', fontWeight: 600, letterSpacing: '-0.04em', marginBottom: '2.5rem', color: 'var(--color-text-primary)' }}>Sign in</h1>
+            <h1 style={{ fontSize: '2.5rem', fontWeight: 600, letterSpacing: '-0.04em', marginBottom: '2.5rem', color: 'var(--color-text-primary)' }}>Login</h1>
             
             {error && <div style={{ padding: '1rem', background: '#fee2e2', color: '#b91c1c', borderRadius: '0.5rem', marginBottom: '1.5rem', fontSize: '0.875rem' }}>{error}</div>}
 
@@ -106,9 +106,9 @@ export function LoginPage() {
                 {loading ? (
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
                     <div className="spinner" style={{ width: '18px', height: '18px', borderWidth: '2px', borderColor: 'rgba(255,255,255,0.3)', borderTopColor: '#fff' }}></div>
-                    <span>Signing in...</span>
+                    <span>Logging in...</span>
                   </div>
-                ) : 'Sign in'}
+                ) : 'Login'}
               </button>
             </form>
           </div>

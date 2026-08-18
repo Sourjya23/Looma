@@ -2,7 +2,7 @@
 @import "tailwindcss";
 
 /* ── Design System Tokens — DStudio-inspired ── */
-@theme {
+:root {
   /* Colors - Light clean theme with dark accents */
   --color-bg-primary: #fafafa;
   --color-bg-secondary: #f0f0f0;
@@ -531,4 +531,42 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--color-text-secondary);
   line-height: 1.6;
   max-width: 500px;
+}
+
+/* ── Responsive adjustments ── */
+@media (max-width: 768px) {
+  .section-container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  nav {
+    padding: 0 1rem !important;
+    flex-wrap: wrap;
+    justify-content: center !important;
+    gap: 0.5rem;
+  }
+  
+  nav > div {
+    gap: 1rem !important;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  header {
+    padding: 1rem !important;
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 1rem;
+  }
+  
+  header > div {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .process-step {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
 }

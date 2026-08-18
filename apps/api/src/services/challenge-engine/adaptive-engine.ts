@@ -30,7 +30,7 @@ export const generateAdaptiveChallenge = async (userId: string, difficulty: Diff
     
     // Only target if priorityScore is meaningful
     if (topWeakness.priorityScore >= 1.0) {
-      const isAdaptiveRoll = Math.random() < 0.7; // 70% adaptive, 30% exploration
+      const isAdaptiveRoll = Math.random() < 0.85; // 85% adaptive, 15% exploration
       
       if (isAdaptiveRoll) {
         mode = 'adaptive';
