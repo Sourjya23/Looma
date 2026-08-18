@@ -81,6 +81,7 @@ export interface Challenge {
   difficulty: Difficulty;
   createdAt: string;
   reasoning?: string;
+  mode: string;
 }
 
 // ── Writing Session ──
