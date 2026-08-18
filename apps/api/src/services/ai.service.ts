@@ -8,7 +8,7 @@ const baseURL = process.env.AI_BASE_URL || 'https://generativelanguage.googleapi
 const apiKey = process.env.AI_API_KEY || process.env.GEMINI_API_KEY || process.env.GROQ_API_KEY;
 
 const openai = new OpenAI({ apiKey, baseURL });
-const MODEL_NAME = process.env.MODEL_NAME || 'gemini-2.5-flash';
+const MODEL_NAME = process.env.MODEL_NAME || 'gemini-3.6-flash';
 
 export class AIService {
   private static sanitizeJSON(content: string): string {
