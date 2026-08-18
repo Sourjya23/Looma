@@ -1,11 +1,14 @@
 import { EnglishAnalysisSchema, EnglishAnalysisType, StoryAnalysisSchema, StoryAnalysisType, DirectorAnalysisSchema, DirectorAnalysisType } from '../schemas/analysis.schema.js';
 import { generateEnglishTeacherPrompt, generateStoryEditorPrompt, generateDirectorPrompt, generateProfileInterpretationPrompt } from './ai.prompts.js';
 import { zodToJsonSchema } from 'zod-to-json-schema';
-import Groq from 'groq-sdk';
+import OpenAI from 'openai';
 import { jsonrepair } from 'jsonrepair';
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-const MODEL_NAME = process.env.MODEL_NAME || 'llama-3.3-70b-versatile';
+const baseURL = process.env.AI_BASE_URL || 'https://generativelanguage.googleapis.com/v1beta/openai/';
+const apiKey = process.env.AI_API_KEY || process.env.GEMINI_API_KEY || process.env.GROQ_API_KEY;
+
+const openai = new OpenAI({ apiKey, baseURL });
+const MODEL_NAME = process.env.MODEL_NAME || 'gemini-2.5-flash';
 
 export class AIService {
   private static sanitizeJSON(content: string): string {
@@ -49,7 +52,7 @@ export class AIService {
       const schemaJson = JSON.stringify(zodToJsonSchema(EnglishAnalysisSchema as any));
       const prompt = generateEnglishTeacherPrompt(content, challengePrompt, schemaJson);
 
-      const completion = await groq.chat.completions.create({
+      const completion = await openai.chat.completions.create({
         messages: [{ role: 'user', content: prompt }],
         model: MODEL_NAME,
         max_tokens: 4000,
@@ -58,13 +61,13 @@ export class AIService {
       });
 
       const responseContent = completion.choices[0]?.message?.content;
-      if (!responseContent) throw new Error("Groq returned empty response");
+      if (!responseContent) throw new Error("AI returned empty response");
 
       const json = JSON.parse(this.sanitizeJSON(responseContent));
       return EnglishAnalysisSchema.parse(json);
       
     } catch (error) {
-      console.error('Error communicating with Groq API:', error);
+      console.error('Error communicating with AI API:', error);
       throw error;
     }
   }
@@ -74,7 +77,7 @@ export class AIService {
       const schemaJson = JSON.stringify(zodToJsonSchema(StoryAnalysisSchema as any));
       const prompt = generateStoryEditorPrompt(content, challengePrompt, schemaJson);
 
-      const completion = await groq.chat.completions.create({
+      const completion = await openai.chat.completions.create({
         messages: [{ role: 'user', content: prompt }],
         model: MODEL_NAME,
         max_tokens: 4000,
@@ -83,13 +86,13 @@ export class AIService {
       });
 
       const responseContent = completion.choices[0]?.message?.content;
-      if (!responseContent) throw new Error("Groq returned empty response");
+      if (!responseContent) throw new Error("AI returned empty response");
 
       const json = JSON.parse(this.sanitizeJSON(responseContent));
       return StoryAnalysisSchema.parse(json);
       
     } catch (error) {
-      console.error('Error communicating with Groq API:', error);
+      console.error('Error communicating with AI API:', error);
       throw error;
     }
   }
@@ -99,7 +102,7 @@ export class AIService {
       const schemaJson = JSON.stringify(zodToJsonSchema(DirectorAnalysisSchema as any));
       const prompt = generateDirectorPrompt(content, challengePrompt, schemaJson);
 
-      const completion = await groq.chat.completions.create({
+      const completion = await openai.chat.completions.create({
         messages: [{ role: 'user', content: prompt }],
         model: MODEL_NAME,
         max_tokens: 4000,
@@ -108,13 +111,13 @@ export class AIService {
       });
 
       const responseContent = completion.choices[0]?.message?.content;
-      if (!responseContent) throw new Error("Groq returned empty response");
+      if (!responseContent) throw new Error("AI returned empty response");
 
       const json = JSON.parse(this.sanitizeJSON(responseContent));
       return DirectorAnalysisSchema.parse(json);
       
     } catch (error) {
-      console.error('Error communicating with Groq API:', error);
+      console.error('Error communicating with AI API:', error);
       throw error;
     }
   }
@@ -123,7 +126,7 @@ export class AIService {
       const { generateComponentsPrompt } = await import('./ai.prompts.js');
       const prompt = generateComponentsPrompt(componentType, count);
 
-      const completion = await groq.chat.completions.create({
+      const completion = await openai.chat.completions.create({
         messages: [{ role: 'user', content: prompt }],
         model: MODEL_NAME,
         max_tokens: 4000,
@@ -132,7 +135,7 @@ export class AIService {
       });
 
       const responseContent = completion.choices[0]?.message?.content;
-      if (!responseContent) throw new Error("Groq returned empty response");
+      if (!responseContent) throw new Error("AI returned empty response");
 
       const json = JSON.parse(this.sanitizeJSON(responseContent));
       return json as string[];
@@ -148,7 +151,7 @@ export class AIService {
       const { generateHolisticChallengePrompt } = await import('./ai.prompts.js');
       const prompt = generateHolisticChallengePrompt(difficulty, timeMins, words, historyPrompts, targetSkill);
 
-      const completion = await groq.chat.completions.create({
+      const completion = await openai.chat.completions.create({
         messages: [{ role: 'user', content: prompt }],
         model: MODEL_NAME,
         max_tokens: 4000,
@@ -157,7 +160,7 @@ export class AIService {
       });
 
       const responseContent = completion.choices[0]?.message?.content;
-      if (!responseContent) throw new Error("Groq returned empty response");
+      if (!responseContent) throw new Error("AI returned empty response");
 
       const json = JSON.parse(this.sanitizeJSON(responseContent));
       return json;
@@ -173,19 +176,19 @@ export class AIService {
       const { generateProfileInterpretationPrompt } = await import('./ai.prompts.js');
       const prompt = generateProfileInterpretationPrompt(factsJson);
 
-      const completion = await groq.chat.completions.create({
+      const completion = await openai.chat.completions.create({
         messages: [{ role: 'user', content: prompt }],
         model: MODEL_NAME,
         temperature: 0.5,
       });
 
       const responseContent = completion.choices[0]?.message?.content;
-      if (!responseContent) throw new Error("Groq returned empty response");
+      if (!responseContent) throw new Error("AI returned empty response");
 
       return responseContent;
       
     } catch (error) {
-      console.error('Error communicating with Groq API:', error);
+      console.error('Error communicating with AI API:', error);
       throw error;
     }
   }
