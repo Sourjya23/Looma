@@ -32,6 +32,7 @@ export const createSession = async (req: Request, res: Response) => {
           difficulty: challengePayload.difficulty,
           timeLimit: targetTime,
           wordTarget: wordTarget,
+          reasoning: challengePayload.reasoning,
         }
       });
       finalChallengeId = newChallenge.id;

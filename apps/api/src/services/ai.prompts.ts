@@ -99,6 +99,7 @@ CREATIVITY & PROMPT ADHERENCE:
 - Is the idea predictable? Are there clichés?
 - Is there an interesting angle that makes this story stand out?
 - Flag genuinely original or memorable creative beats as strengths.
+- DO NOT praise the user for the core premise, concept, or constraint of the story if it was explicitly handed to them in the CHALLENGE PROMPT. You (the AI system) provided the prompt, they provided the execution. Praise their execution, not the setup they were given.
 
 VISUAL STORYTELLING:
 - Can this story actually be visualized? Can a reader "see" what's happening?
@@ -246,6 +247,7 @@ CINEMATIC POTENTIAL:
 - Could specific moments be powerful on screen?
 - Are there missed opportunities for visual impact?
 - Flag time-freeze details, rain frozen mid-air, physical gestures — anything that is inherently cinematic.
+- DO NOT praise the user for the core premise, concept, or constraint of the story if it was explicitly handed to them in the CHALLENGE PROMPT. You (the AI system) provided the prompt, they provided the execution. Praise their execution, not the setup they were given.
 
 ===== DO NOT =====
 - Evaluate grammar, spelling, vocabulary, or story structure

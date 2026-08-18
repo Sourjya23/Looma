@@ -50,6 +50,7 @@ model Challenge {
   mode        String           @default("normal")
   userId      String?
   targetSkill String?
+  reasoning   String?
   user        User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
   sessions    WritingSession[]
 }

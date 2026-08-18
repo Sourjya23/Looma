@@ -391,19 +391,49 @@ export function WritingPage() {
         {/* Challenge Prompt Banner */}
         {session.challenge && (
           <div style={{
-            padding: '1rem 2rem',
+            padding: '2rem clamp(1rem, 4vw, 3rem)',
             borderBottom: '1px solid var(--color-border)',
-            textAlign: 'center',
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)'
+            backgroundColor: 'var(--color-bg-primary)',
+            maxHeight: '40vh',
+            overflowY: 'auto'
           }}>
-            <p style={{ fontSize: '1.05rem', fontWeight: 500, color: 'var(--color-text-primary)', maxWidth: '900px', margin: '0 auto' }}>
-              "{session.challenge.prompt}"
-            </p>
-            {session.challenge.constraint && (
-              <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', marginTop: '0.5rem', fontWeight: 500 }}>
-                Constraint: {session.challenge.constraint}
-              </p>
-            )}
+            <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                {session.challenge.genre && session.challenge.genre.trim() !== '' && (
+                  <span style={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-primary)', backgroundColor: 'var(--color-primary-light)', padding: '0.25rem 0.75rem', borderRadius: '1rem' }}>
+                    {session.challenge.genre}
+                  </span>
+                )}
+                {session.challenge.mode === 'adaptive' && (
+                  <span style={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#ffffff', backgroundColor: '#000000', padding: '0.25rem 0.75rem', borderRadius: '1rem' }}>
+                    Targeted Practice
+                  </span>
+                )}
+              </div>
+
+              <h1 style={{ fontSize: 'clamp(1.25rem, 2vw, 1.75rem)', fontWeight: 400, letterSpacing: '-0.02em', marginBottom: '1.5rem', lineHeight: 1.3, color: 'var(--color-text-primary)' }}>
+                {session.challenge.prompt}
+              </h1>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {session.challenge.reasoning && (
+                  <div style={{ backgroundColor: 'var(--color-bg-alt)', padding: '1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+                    <span style={{ fontSize: '1.25rem', marginTop: '2px' }}>💡</span>
+                    <div>
+                      <strong style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.35rem', color: 'var(--color-text-primary)' }}>Why this challenge?</strong>
+                      <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-secondary)', lineHeight: 1.6 }}>{session.challenge.reasoning}</p>
+                    </div>
+                  </div>
+                )}
+
+                {session.challenge.constraint && (
+                  <div style={{ backgroundColor: 'var(--color-bg-alt)', padding: '1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
+                    <h3 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.35rem', color: 'var(--color-text-primary)' }}>Constraint:</h3>
+                    <p style={{ color: 'var(--color-text-secondary)', margin: 0, fontSize: '0.875rem', lineHeight: 1.6 }}>{session.challenge.constraint}</p>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
       </div>

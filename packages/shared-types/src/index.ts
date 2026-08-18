@@ -80,6 +80,7 @@ export interface Challenge {
   wordTarget?: number;
   difficulty: Difficulty;
   createdAt: string;
+  reasoning?: string;
 }
 
 // ── Writing Session ──
