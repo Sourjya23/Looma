@@ -2,6 +2,7 @@ import { EnglishAnalysisSchema, EnglishAnalysisType, StoryAnalysisSchema, StoryA
 import { generateEnglishTeacherPrompt, generateStoryEditorPrompt, generateDirectorPrompt, generateProfileInterpretationPrompt } from './ai.prompts.js';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import Groq from 'groq-sdk';
+import { jsonrepair } from 'jsonrepair';
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 const MODEL_NAME = process.env.MODEL_NAME || 'openai/gpt-oss-120b';
@@ -30,6 +31,11 @@ export class AIService {
 
     if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
         clean = clean.substring(startIdx, endIdx + 1);
+        try {
+            clean = jsonrepair(clean);
+        } catch (e) {
+            console.warn("[AIService] jsonrepair could not fix the JSON:", e);
+        }
     } else {
         console.error("[AIService] Failed to find JSON boundaries in model output. Raw output was:", content.substring(0, 500) + "...");
         throw new Error("Failed to extract JSON from AI response: Missing braces/brackets");
