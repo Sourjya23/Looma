@@ -8,9 +8,10 @@ interface HistorySidebarProps {
   onNewWriting: () => void;
   activeSessionId?: string;
   isOpen: boolean;
+  onClose: () => void;
 }
 
-export function HistorySidebar({ token, onNewWriting, activeSessionId, isOpen }: HistorySidebarProps) {
+export function HistorySidebar({ token, onNewWriting, activeSessionId, isOpen, onClose }: HistorySidebarProps) {
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -62,7 +63,7 @@ export function HistorySidebar({ token, onNewWriting, activeSessionId, isOpen }:
       if (res.ok) {
         setHistory(prev => prev.filter(h => h.id !== id));
         toast.success('Story deleted successfully');
-        if (activeSessionId === id) navigate('/dashboard');
+        if (activeSessionId === id) navigate('/dashboard'); onClose();;
       } else {
         toast.error('Failed to delete story');
         console.error('Failed to delete session');
@@ -134,7 +135,7 @@ export function HistorySidebar({ token, onNewWriting, activeSessionId, isOpen }:
             return (
               <div
                 key={item.id}
-                onClick={() => navigate(`/summary/${item.id}`)}
+                onClick={() => navigate(`/summary/${item.id}`); onClose();}
                 style={{
                   position: 'relative',
                   display: 'flex',
@@ -260,7 +261,7 @@ export function HistorySidebar({ token, onNewWriting, activeSessionId, isOpen }:
       <div style={{ height: '80px', padding: '0 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', borderBottom: '1px solid var(--color-border)', minWidth: '280px' }}>
 
         <button 
-          onClick={() => navigate('/dashboard')}
+          onClick={() => navigate('/dashboard'); onClose();}
           style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: '0.75rem' }}
         >
           <img src="/logo-icon.png" alt="Looma Logo" style={{ height: '28px', width: 'auto' }} />
@@ -272,7 +273,7 @@ export function HistorySidebar({ token, onNewWriting, activeSessionId, isOpen }:
 
       <div style={{ padding: '1.5rem 1.5rem 0 1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', minWidth: '280px' }}>
         <button 
-          onClick={onNewWriting}
+          onClick={() => { onNewWriting(); onClose(); }}
           style={{ width: '100%', padding: '0.875rem', backgroundColor: 'var(--color-text-primary)', color: 'var(--color-text-on-dark)', border: 'none', borderRadius: '0.5rem', fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
@@ -280,7 +281,7 @@ export function HistorySidebar({ token, onNewWriting, activeSessionId, isOpen }:
         </button>
         
         <button 
-          onClick={() => navigate('/profile')}
+          onClick={() => navigate('/profile'); onClose();}
           style={{ width: '100%', padding: '0.75rem', backgroundColor: 'transparent', color: 'var(--color-text-primary)', border: '1px solid var(--color-border)', borderRadius: '0.5rem', fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>

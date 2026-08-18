@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useParams, Link } from 'react-router-dom';
 import { HistorySidebar } from '../history/HistorySidebar';
 import { useAuth } from '../auth/AuthContext';
@@ -8,7 +8,17 @@ export function AppLayout() {
   const { token, user, logout } = useAuth();
   const navigate = useNavigate();
   const { sessionId } = useParams(); // Works if it's a child route
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 768);
+
+  // Handle resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768 && isSidebarOpen) setIsSidebarOpen(false);
+      if (window.innerWidth >= 768 && !isSidebarOpen) setIsSidebarOpen(true);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [isSidebarOpen]);
 
   if (!token) return null;
 
@@ -18,18 +28,28 @@ export function AppLayout() {
 
   return (
     <div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden' }}>
-      <HistorySidebar token={token} onNewWriting={handleNewWriting} activeSessionId={sessionId} isOpen={isSidebarOpen} />
+      <HistorySidebar token={token} onNewWriting={handleNewWriting} activeSessionId={sessionId} isOpen={isSidebarOpen} onClose={() => { if (window.innerWidth < 768) setIsSidebarOpen(false); }} />
       
+      
+      {/* Mobile Backdrop Overlay */}
+      <div 
+        className={`sidebar-backdrop ${isSidebarOpen ? 'open' : ''}`}
+        onClick={() => setIsSidebarOpen(false)}
+      />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <nav style={{ height: '80px', padding: '0 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg-primary)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <button 
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="sidebar-toggle-btn"
               style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.5rem', borderRadius: '0.25rem' }}
               title={isSidebarOpen ? "Close Sidebar" : "Open Sidebar"}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg className="desktop-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line>
+              </svg>
+              <svg className="mobile-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line>
               </svg>
             </button>
           </div>
