@@ -188,9 +188,14 @@ export function ReportPage() {
               
               sortedMistakes.forEach((mistake: any) => {
                 if (!mistake.originalText || mistake.originalText.length < 3) return;
+                // Escape regex special chars
                 let escapedText = mistake.originalText.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                // Normalize smart quotes: match both straight and curly forms
+                // Rich text editor saves curly quotes, but AI returns straight ones
+                escapedText = escapedText.replace(/'/g, "['\u2018\u2019]");
+                escapedText = escapedText.replace(/"/g, '["\u201C\u201D]');
+                // Make spaces flexible to handle HTML spacing (nbsp, br tags, etc.)
                 escapedText = escapedText.replace(/\s+/g, '(?:\\s|&nbsp;|<br\\s*/?>|<[^>]+>)*\\s*(?:\\s|&nbsp;|<br\\s*/?>)*');
-                // Removed lookbehind to avoid Safari issues and made spaces match HTML spaces/breaks/tags
                 const regex = new RegExp(`(${escapedText})`, 'gi'); 
                 
                 let bgImage = '';

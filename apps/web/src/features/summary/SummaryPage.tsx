@@ -194,6 +194,9 @@ export function SummaryPage() {
       if (!mistake.originalText || mistake.originalText.length < 3) return; // avoid matching single letters
       
       let escapedText = mistake.originalText.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      // Normalize smart quotes: match both straight and curly forms
+      escapedText = escapedText.replace(/'/g, "['\\u2018\\u2019]");
+      escapedText = escapedText.replace(/"/g, '["\\u201C\\u201D]');
       escapedText = escapedText.replace(/\s+/g, '(?:\\s|&nbsp;|<br\\s*/?>|<[^>]+>)*\\s*(?:\\s|&nbsp;|<br\\s*/?>)*');
       const regex = new RegExp(`(${escapedText})`, 'gi');
       
