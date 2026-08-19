@@ -189,8 +189,8 @@ export function ReportPage() {
               sortedMistakes.forEach((mistake: any) => {
                 if (!mistake.originalText || mistake.originalText.length < 3) return;
                 let escapedText = mistake.originalText.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                escapedText = escapedText.replace(/\\s+|\\ /g, '(?:\\s|&nbsp;|<br\\s*/?>)+');
-                // Removed lookbehind to avoid Safari issues and made spaces match HTML spaces/breaks
+                escapedText = escapedText.replace(/\s+/g, '(?:\\s|&nbsp;|<br\\s*/?>|<[^>]+>)*\\s*(?:\\s|&nbsp;|<br\\s*/?>)*');
+                // Removed lookbehind to avoid Safari issues and made spaces match HTML spaces/breaks/tags
                 const regex = new RegExp(`(${escapedText})`, 'gi'); 
                 
                 let bgImage = '';

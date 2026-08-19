@@ -194,7 +194,7 @@ export function SummaryPage() {
       if (!mistake.originalText || mistake.originalText.length < 3) return; // avoid matching single letters
       
       let escapedText = mistake.originalText.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      escapedText = escapedText.replace(/\\s+|\\ /g, '(?:\\s|&nbsp;|<br\\s*/?>)+');
+      escapedText = escapedText.replace(/\s+/g, '(?:\\s|&nbsp;|<br\\s*/?>|<[^>]+>)*\\s*(?:\\s|&nbsp;|<br\\s*/?>)*');
       const regex = new RegExp(`(${escapedText})`, 'gi');
       
       let bgImage = '';
