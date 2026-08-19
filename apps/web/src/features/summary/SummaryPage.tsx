@@ -200,12 +200,13 @@ export function SummaryPage() {
       // But we can just do a basic replace for now since LLM returns exact text.
       const regex = new RegExp(`(?<!<[^>]*)(${escapedText})`, 'gi'); 
       
-      const categoryColor = mistake.category === 'grammar' ? '#ef4444' : 
-                            mistake.category === 'spelling' ? '#eab308' : 
-                            mistake.category === 'word_choice' ? '#3b82f6' : '#8b5cf6';
+      const categoryColor = mistake.category === 'grammar' ? '#FF6B6B' : // Vivid Red/Pink
+                            mistake.category === 'spelling' ? '#FEE440' : // Vivid Yellow
+                            mistake.category === 'word_choice' ? '#00BBF9' : // Vivid Cyan
+                            '#00F5D4'; // Vivid Mint
                             
       // We use a custom string replacement that doesn't break if it matches multiple times.
-      content = content.replace(regex, `<span class="mistake-highlight" style="background-color: ${categoryColor}20; border-bottom: 2px dashed ${categoryColor}; cursor: help; padding: 0 0.2rem; border-radius: 0.2rem; transition: background-color 0.2s;" title="Category: ${mistake.category}&#10;Correction: ${mistake.correction}&#10;Why: ${mistake.explanation}" onmouseover="this.style.backgroundColor='${categoryColor}40'" onmouseout="this.style.backgroundColor='${categoryColor}20'">$1</span>`);
+      content = content.replace(regex, `<span class="mistake-highlight" style="background-color: ${categoryColor}; color: #000; font-weight: 500; cursor: help; padding: 0.15rem 0.35rem; margin: 0 0.1rem; border-radius: 0.25rem; transition: all 0.2s ease; display: inline-block; box-shadow: 0 1px 2px rgba(0,0,0,0.15);" title="Category: ${mistake.category}&#10;Correction: ${mistake.correction}&#10;Why: ${mistake.explanation}" onmouseover="this.style.transform='scale(1.05) translateY(-1px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.2)'" onmouseout="this.style.transform='scale(1) translateY(0)'; this.style.boxShadow='0 1px 2px rgba(0,0,0,0.15)'">$1</span>`);
     });
     
     highlightedContent = content;
