@@ -111,7 +111,33 @@ export function ReportPage() {
     );
   }
 
+  // ── SVG highlight helpers ────────────────────────────────────────────────
+  const getSvgBg = (category: string) => {
+    if (category === 'grammar') return `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none' viewBox='0 0 100 100'%3E%3Cpath d='M 5,50 C 5,15 95,15 95,50 C 95,85 5,85 5,50 C 5,40 20,30 35,30' fill='none' stroke='%23F43F5E' stroke-width='2' vector-effect='non-scaling-stroke' stroke-linecap='round'/%3E%3C/svg%3E")`;
+    if (category === 'spelling') return `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none' viewBox='0 0 100 100'%3E%3Cpath d='M 0,85 Q 12.5,70 25,85 T 50,85 T 75,85 T 100,85' fill='none' stroke='%233B82F6' stroke-width='2.5' vector-effect='non-scaling-stroke' stroke-linecap='round'/%3E%3C/svg%3E")`;
+    if (category === 'word_choice') return `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none' viewBox='0 0 100 100'%3E%3Cpath d='M 2,85 L 98,82 M 5,95 L 95,92' fill='none' stroke='%23F59E0B' stroke-width='2.5' vector-effect='non-scaling-stroke' stroke-linecap='round'/%3E%3C/svg%3E")`;
+    return `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none' viewBox='0 0 100 100'%3E%3Cpath d='M -5,80 L 105,75' fill='none' stroke='%2310B981' stroke-width='35' stroke-linecap='round' opacity='0.4'/%3E%3C/svg%3E")`;
+  };
+
+  /** Render correction text with changed words highlighted using category SVG */
+  const renderCorrectionDiff = (original: string, correction: string, category: string) => {
+    const clean = (s: string) => (s || '').replace(/<[^>]+>/g, '').replace(/[\u201C\u201D]/g, '"').replace(/[\u2018\u2019]/g, "'");
+    const origTokens = clean(original).split(/(\s+)/);
+    const corrTokens = clean(correction).split(/(\s+)/);
+    const bgImage = getSvgBg(category);
+    const hlStyle: React.CSSProperties = {
+      backgroundImage: bgImage, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat',
+      padding: '0.05rem 0.4rem', margin: '0 -0.15rem', display: 'inline-block',
+    };
+    return corrTokens.map((token, i) => {
+      if (/^\s+$/.test(token)) return <span key={i}>{token}</span>;
+      const isDiff = origTokens[i] !== token;
+      return isDiff && token.trim() ? <span key={i} style={hlStyle}>{token}</span> : <span key={i}>{token}</span>;
+    });
+  };
+
   return (
+
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: 'var(--color-bg)' }}>
       <header style={{ padding: '1.5rem 2rem', borderBottom: '1px solid var(--color-border)', backgroundColor: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
@@ -244,11 +270,19 @@ export function ReportPage() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                       {analyses.english.mistakes.map((m: any, i: number) => (
                         <div key={i} style={{ padding: '1rem', backgroundColor: 'var(--color-bg-alt)', borderRadius: '0.5rem', border: '1px solid var(--color-border)' }}>
-                          <div style={{ color: 'var(--color-error)', marginBottom: '0.25rem', textDecoration: 'line-through' }}>
-                            ❌ "{m.originalText?.replace(/<[^>]+>/g, '')}"
+                          <div style={{ marginBottom: '0.4rem', display: 'flex', alignItems: 'flex-start', gap: '0.5rem', flexWrap: 'wrap' }}>
+                            <span style={{ color: 'var(--color-error)', flexShrink: 0 }}>❌</span>
+                            <span style={{
+                              backgroundImage: getSvgBg(m.category),
+                              backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat',
+                              padding: '0.1rem 0.4rem', margin: '0 -0.1rem', display: 'inline-block',
+                              textDecoration: 'line-through', textDecorationColor: '#F43F5E',
+                              color: 'var(--color-text-secondary)', opacity: 0.8,
+                            }}>"{m.originalText?.replace(/<[^>]+>/g, '')}"</span>
                           </div>
-                          <div style={{ color: 'var(--color-success)', marginBottom: '0.75rem', fontWeight: 500 }}>
-                            ✓ "{m.correction?.replace(/<[^>]+>/g, '')}"
+                          <div style={{ color: 'var(--color-success)', marginBottom: '0.75rem', fontWeight: 500, display: 'flex', alignItems: 'flex-start', gap: '0.5rem', flexWrap: 'wrap' }}>
+                            <span style={{ flexShrink: 0 }}>✓</span>
+                            <span>"{ renderCorrectionDiff(m.originalText, m.correction, m.category) }"</span>
                           </div>
                           <div style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)' }}>
                             <strong>Why?</strong> {m.explanation}
@@ -265,11 +299,19 @@ export function ReportPage() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                       {analyses.english.vocabularyImprovements.map((v: any, i: number) => (
                         <div key={i} style={{ padding: '1rem', backgroundColor: 'var(--color-bg-alt)', borderRadius: '0.5rem', border: '1px solid var(--color-border)' }}>
-                          <div style={{ marginBottom: '0.25rem', color: 'var(--color-text-muted)' }}>
-                            Original: "{v.originalText?.replace(/<[^>]+>/g, '')}"
+                          <div style={{ marginBottom: '0.4rem', display: 'flex', alignItems: 'flex-start', gap: '0.5rem', flexWrap: 'wrap' }}>
+                            <span style={{ color: 'var(--color-text-muted)', flexShrink: 0 }}>Original:</span>
+                            <span style={{
+                              backgroundImage: getSvgBg('word_choice'),
+                              backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat',
+                              padding: '0.1rem 0.4rem', margin: '0 -0.1rem', display: 'inline-block',
+                              textDecoration: 'line-through', textDecorationColor: '#F59E0B',
+                              color: 'var(--color-text-muted)', opacity: 0.8,
+                            }}>"{v.originalText?.replace(/<[^>]+>/g, '')}"</span>
                           </div>
-                          <div style={{ marginBottom: '0.75rem', color: 'var(--color-text-primary)', fontWeight: 500 }}>
-                            Better: "{v.betterText?.replace(/<[^>]+>/g, '')}"
+                          <div style={{ marginBottom: '0.75rem', color: 'var(--color-text-primary)', fontWeight: 500, display: 'flex', alignItems: 'flex-start', gap: '0.5rem', flexWrap: 'wrap' }}>
+                            <span style={{ flexShrink: 0 }}>Better:</span>
+                            <span>"{ renderCorrectionDiff(v.originalText, v.betterText, 'word_choice') }"</span>
                           </div>
                           <div style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)' }}>
                             <strong>Why:</strong> {v.explanation}
