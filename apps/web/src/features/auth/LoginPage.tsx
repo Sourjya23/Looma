@@ -7,6 +7,8 @@ import { API_BASE } from '@/lib/api';
 export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
@@ -26,7 +28,7 @@ export function LoginPage() {
       const data = await res.json();
 
       if (data.success) {
-        login(data.data.token, data.data.user);
+        login(data.data.token, data.data.user, rememberMe);
         toast.success('Successfully logged in!');
         navigate('/dashboard');
       } else {
@@ -72,31 +74,62 @@ export function LoginPage() {
             {error && <div style={{ padding: '1rem', background: '#fee2e2', color: '#b91c1c', borderRadius: '0.5rem', marginBottom: '1.5rem', fontSize: '0.875rem' }}>{error}</div>}
 
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-              <div>
+              <div style={{ position: 'relative' }}>
                 <input 
                   id="email"
-                  type="email" 
-                  placeholder="Email address"
+                  type="text" 
+                  placeholder="Username or email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  style={{ width: '100%', padding: '1rem 1.25rem', borderRadius: '0.75rem', border: '1px solid var(--color-border)', background: 'var(--color-bg-input)', outline: 'none', transition: 'border-color 0.2s', fontSize: '0.95rem' }}
+                  style={{ width: '100%', padding: '1rem 3rem 1rem 1.25rem', borderRadius: '0.75rem', border: '1px solid var(--color-border)', background: 'var(--color-bg-input)', outline: 'none', transition: 'border-color 0.2s', fontSize: '0.95rem' }}
                   onFocus={(e) => e.target.style.borderColor = 'var(--color-text-primary)'}
                   onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'}
                 />
+                {email && (
+                  <button type="button" onClick={() => setEmail('')} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer', padding: '0.25rem' }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                  </button>
+                )}
               </div>
-              <div>
+              <div style={{ position: 'relative' }}>
                 <input 
                   id="password"
-                  type="password" 
+                  type={showPassword ? "text" : "password"} 
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  style={{ width: '100%', padding: '1rem 1.25rem', borderRadius: '0.75rem', border: '1px solid var(--color-border)', background: 'var(--color-bg-input)', outline: 'none', transition: 'border-color 0.2s', fontSize: '0.95rem' }}
+                  style={{ width: '100%', padding: '1rem 5rem 1rem 1.25rem', borderRadius: '0.75rem', border: '1px solid var(--color-border)', background: 'var(--color-bg-input)', outline: 'none', transition: 'border-color 0.2s', fontSize: '0.95rem' }}
                   onFocus={(e) => e.target.style.borderColor = 'var(--color-text-primary)'}
                   onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'}
                 />
+                <div style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                  {password && (
+                    <button type="button" onClick={() => setPassword('')} style={{ background: 'none', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer', padding: '0.25rem' }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                  )}
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ background: 'none', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer', padding: '0.25rem' }}>
+                    {showPassword ? (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                    ) : (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    )}
+                  </button>
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '-0.5rem' }}>
+                <input 
+                  type="checkbox" 
+                  id="rememberMe" 
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  style={{ width: '1rem', height: '1rem', cursor: 'pointer' }}
+                />
+                <label htmlFor="rememberMe" style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', cursor: 'pointer', userSelect: 'none' }}>
+                  Remember me
+                </label>
               </div>
               <button 
                 type="submit" 

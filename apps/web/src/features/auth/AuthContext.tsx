@@ -5,7 +5,7 @@ import { API_BASE } from '@/lib/api';
 interface AuthContextType {
   user: User | null;
   token: string | null;
-  login: (token: string, user: User) => void;
+  login: (token: string, user: User, rememberMe?: boolean) => void;
   logout: () => void;
   updateUser: (user: Partial<User>) => void;
   isLoading: boolean;
@@ -15,7 +15,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem('token') || sessionStorage.getItem('token'));
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -39,6 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else {
           setToken(null);
           localStorage.removeItem('token');
+          sessionStorage.removeItem('token');
         }
       } catch (e) {
         console.error('Failed to verify token', e);
@@ -50,16 +51,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     verifyUser();
   }, [token]);
 
-  const login = (newToken: string, newUser: User) => {
+  const login = (newToken: string, newUser: User, rememberMe: boolean = true) => {
     setToken(newToken);
     setUser(newUser);
-    localStorage.setItem('token', newToken);
+    if (rememberMe) {
+      localStorage.setItem('token', newToken);
+      sessionStorage.removeItem('token');
+    } else {
+      sessionStorage.setItem('token', newToken);
+      localStorage.removeItem('token');
+    }
   };
 
   const logout = () => {
     setToken(null);
     setUser(null);
     localStorage.removeItem('token');
+    sessionStorage.removeItem('token');
   };
 
   const updateUser = (updatedFields: Partial<User>) => {
