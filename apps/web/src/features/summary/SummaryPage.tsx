@@ -292,6 +292,39 @@ export function SummaryPage() {
           </div>
         )}
 
+        {(finalSubmission as any)?.englishAnalysis?.mistakes?.length > 0 && (
+          <div style={{ marginBottom: '2rem', padding: '1.25rem 1.5rem', backgroundColor: 'var(--color-bg-primary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+            <h3 style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-secondary)', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Analysis Highlights Guide</h3>
+            <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', fontSize: '0.9rem', color: 'var(--color-text-primary)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span className="mistake-highlight" style={{
+                  backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none' viewBox='0 0 100 100'%3E%3Cpath d='M 5,50 C 5,15 95,15 95,50 C 95,85 5,85 5,50 C 5,40 20,30 35,30' fill='none' stroke='%23F43F5E' stroke-width='2' vector-effect='non-scaling-stroke' stroke-linecap='round'/%3E%3C/svg%3E")`,
+                  backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat', padding: '0.2rem 0.4rem', margin: '0 -0.2rem'
+                }}>Grammar</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span className="mistake-highlight" style={{
+                  backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none' viewBox='0 0 100 100'%3E%3Cpath d='M 0,85 Q 12.5,70 25,85 T 50,85 T 75,85 T 100,85' fill='none' stroke='%233B82F6' stroke-width='2.5' vector-effect='non-scaling-stroke' stroke-linecap='round'/%3E%3C/svg%3E")`,
+                  backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat', padding: '0.2rem 0.4rem', margin: '0 -0.2rem'
+                }}>Spelling</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span className="mistake-highlight" style={{
+                  backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none' viewBox='0 0 100 100'%3E%3Cpath d='M 2,85 L 98,82 M 5,95 L 95,92' fill='none' stroke='%23F59E0B' stroke-width='2.5' vector-effect='non-scaling-stroke' stroke-linecap='round'/%3E%3C/svg%3E")`,
+                  backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat', padding: '0.2rem 0.4rem', margin: '0 -0.2rem'
+                }}>Word Choice</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span className="mistake-highlight" style={{
+                  backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none' viewBox='0 0 100 100'%3E%3Cpath d='M -5,80 L 105,75' fill='none' stroke='%2310B981' stroke-width='35' stroke-linecap='round' opacity='0.4'/%3E%3C/svg%3E")`,
+                  backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat', padding: '0.2rem 0.4rem', margin: '0 -0.2rem'
+                }}>Other Issues</span>
+              </div>
+            </div>
+            <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: '0.75rem', marginBottom: 0 }}>💡 Hover over any highlighted text in your story below to see detailed AI feedback.</p>
+          </div>
+        )}
+
         <div style={{ marginBottom: '4rem' }}>
           <h2 style={{ fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-text-secondary)', marginBottom: '1rem' }}>Your Story</h2>
           <div style={{ padding: '2rem', backgroundColor: '#fff', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
