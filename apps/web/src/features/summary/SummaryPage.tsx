@@ -200,13 +200,19 @@ export function SummaryPage() {
       // But we can just do a basic replace for now since LLM returns exact text.
       const regex = new RegExp(`(?<!<[^>]*)(${escapedText})`, 'gi'); 
       
-      const categoryColor = mistake.category === 'grammar' ? '#FF6B6B' : // Vivid Red/Pink
-                            mistake.category === 'spelling' ? '#FEE440' : // Vivid Yellow
-                            mistake.category === 'word_choice' ? '#00BBF9' : // Vivid Cyan
-                            '#00F5D4'; // Vivid Mint
+      let bgImage = '';
+      if (mistake.category === 'grammar') {
+        bgImage = `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none' viewBox='0 0 100 100'%3E%3Cpath d='M 5,50 C 5,15 95,15 95,50 C 95,85 5,85 5,50 C 5,40 20,30 35,30' fill='none' stroke='%23F43F5E' stroke-width='2' vector-effect='non-scaling-stroke' stroke-linecap='round'/%3E%3C/svg%3E")`;
+      } else if (mistake.category === 'spelling') {
+        bgImage = `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none' viewBox='0 0 100 100'%3E%3Cpath d='M 0,85 Q 12.5,70 25,85 T 50,85 T 75,85 T 100,85' fill='none' stroke='%233B82F6' stroke-width='2.5' vector-effect='non-scaling-stroke' stroke-linecap='round'/%3E%3C/svg%3E")`;
+      } else if (mistake.category === 'word_choice') {
+        bgImage = `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none' viewBox='0 0 100 100'%3E%3Cpath d='M 2,85 L 98,82 M 5,95 L 95,92' fill='none' stroke='%23F59E0B' stroke-width='2.5' vector-effect='non-scaling-stroke' stroke-linecap='round'/%3E%3C/svg%3E")`;
+      } else {
+        bgImage = `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none' viewBox='0 0 100 100'%3E%3Cpath d='M -5,80 L 105,75' fill='none' stroke='%2310B981' stroke-width='35' stroke-linecap='round' opacity='0.4'/%3E%3C/svg%3E")`;
+      }
                             
       // We use a custom string replacement that doesn't break if it matches multiple times.
-      content = content.replace(regex, `<span class="mistake-highlight" style="background-color: ${categoryColor}; color: #000; font-weight: 500; cursor: help; padding: 0.15rem 0.35rem; margin: 0 0.1rem; border-radius: 0.25rem; transition: all 0.2s ease; display: inline-block; box-shadow: 0 1px 2px rgba(0,0,0,0.15);" title="Category: ${mistake.category}&#10;Correction: ${mistake.correction}&#10;Why: ${mistake.explanation}" onmouseover="this.style.transform='scale(1.05) translateY(-1px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.2)'" onmouseout="this.style.transform='scale(1) translateY(0)'; this.style.boxShadow='0 1px 2px rgba(0,0,0,0.15)'">$1</span>`);
+      content = content.replace(regex, `<span class="mistake-highlight" style="background-image: ${bgImage}; background-size: 100% 100%; background-repeat: no-repeat; color: inherit; cursor: help; padding: 0.2rem 0.4rem; margin: 0 -0.2rem; display: inline-block; transition: all 0.2s ease;" title="Category: ${mistake.category}&#10;Correction: ${mistake.correction}&#10;Why: ${mistake.explanation}" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">$1</span>`);
     });
     
     highlightedContent = content;
