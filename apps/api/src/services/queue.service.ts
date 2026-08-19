@@ -13,8 +13,10 @@ const workerConnection = new IORedis(env.REDIS_URL, connectionOptions);
 export const aiQueue = new Queue('ai-analysis', { 
   connection: queueConnection,
   defaultJobOptions: {
-    attempts: 3,
-    backoff: { type: 'exponential', delay: 2000 }
+    attempts: 6,  // Try up to 6 times (covers full key rotation + retries after quota reset)
+    backoff: { 
+      type: 'custom',
+    }
   }
 });
 
