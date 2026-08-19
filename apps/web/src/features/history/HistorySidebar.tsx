@@ -135,7 +135,7 @@ export function HistorySidebar({ token, onNewWriting, activeSessionId, isOpen, o
             return (
               <div
                 key={item.id}
-                onClick={() => navigate(`/summary/${item.id}`); onClose();}
+                onClick={() => { navigate(`/summary/${item.id}`); onClose(); }}
                 style={{
                   position: 'relative',
                   display: 'flex',
@@ -261,7 +261,7 @@ export function HistorySidebar({ token, onNewWriting, activeSessionId, isOpen, o
       <div style={{ height: '80px', padding: '0 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', borderBottom: '1px solid var(--color-border)', minWidth: '280px' }}>
 
         <button 
-          onClick={() => navigate('/dashboard'); onClose();}
+          onClick={() => { navigate('/dashboard'); onClose(); }}
           style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: '0.75rem' }}
         >
           <img src="/logo-icon.png" alt="Looma Logo" style={{ height: '28px', width: 'auto' }} />
@@ -281,7 +281,7 @@ export function HistorySidebar({ token, onNewWriting, activeSessionId, isOpen, o
         </button>
         
         <button 
-          onClick={() => navigate('/profile'); onClose();}
+          onClick={() => { navigate('/profile'); onClose(); }}
           style={{ width: '100%', padding: '0.75rem', backgroundColor: 'transparent', color: 'var(--color-text-primary)', border: '1px solid var(--color-border)', borderRadius: '0.5rem', fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
