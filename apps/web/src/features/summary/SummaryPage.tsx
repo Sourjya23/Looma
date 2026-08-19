@@ -193,12 +193,9 @@ export function SummaryPage() {
     sortedMistakes.forEach((mistake: any) => {
       if (!mistake.originalText || mistake.originalText.length < 3) return; // avoid matching single letters
       
-      // Escape regex chars
-      const escapedText = mistake.originalText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      
-      // Using negative lookbehind/lookahead to avoid matching inside HTML tags could be complex.
-      // But we can just do a basic replace for now since LLM returns exact text.
-      const regex = new RegExp(`(?<!<[^>]*)(${escapedText})`, 'gi'); 
+      let escapedText = mistake.originalText.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      escapedText = escapedText.replace(/\\s+|\\ /g, '(?:\\s|&nbsp;|<br\\s*/?>)+');
+      const regex = new RegExp(`(${escapedText})`, 'gi');
       
       let bgImage = '';
       if (mistake.category === 'grammar') {
