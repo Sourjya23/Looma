@@ -46,6 +46,7 @@ class ApiClient {
     const response = await fetch(`${API_BASE}${endpoint}`, {
       ...restOptions,
       headers,
+      credentials: 'include', // Always send cookies cross-origin (for HTTP-only auth_token)
       body: body ? JSON.stringify(body) : undefined,
     });
 

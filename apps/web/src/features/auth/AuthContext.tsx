@@ -15,41 +15,50 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem('token') || sessionStorage.getItem('token'));
+  const [token, setToken] = useState<string | null>(
+    () => localStorage.getItem('token') || sessionStorage.getItem('token')
+  );
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // If we have a token, we could fetch /api/auth/me to verify and get user
-    // For simplicity right now, we'll just check if it exists in local storage
-    // but ideally we make a fetch call here.
     const verifyUser = async () => {
-      if (!token) {
-        setIsLoading(false);
-        return;
-      }
-
       try {
+        // Always call /me with credentials: 'include' so the HTTP-only cookie is sent.
+        // This handles both:
+        //   - token in storage (non-cookie sessions / "no remember me")
+        //   - HTTP-only cookie (persistent "remember me" sessions, no token in storage)
+        const headers: Record<string, string> = {};
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
         const res = await fetch(`${API_BASE}/auth/me`, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers,
+          credentials: 'include', // Send cookie even if no token in storage
         });
         const data = await res.json();
-        
+
         if (data.success) {
           setUser(data.data);
         } else {
+          // Session invalid — clear storage
           setToken(null);
           localStorage.removeItem('token');
           sessionStorage.removeItem('token');
         }
       } catch (e) {
-        console.error('Failed to verify token', e);
+        console.error('Failed to verify session', e);
+        setToken(null);
+        localStorage.removeItem('token');
+        sessionStorage.removeItem('token');
       } finally {
         setIsLoading(false);
       }
     };
 
     verifyUser();
-  }, [token]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run once on mount — not every time token changes
 
   const login = (newToken: string, newUser: User, rememberMe: boolean = true) => {
     setToken(newToken);
@@ -63,7 +72,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    // Tell backend to clear the HTTP-only cookie
+    try {
+      await fetch(`${API_BASE}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } catch (e) {
+      console.warn('Logout request failed', e);
+    }
     setToken(null);
     setUser(null);
     localStorage.removeItem('token');

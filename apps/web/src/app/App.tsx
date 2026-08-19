@@ -12,6 +12,7 @@ import { RevisionEditorPage } from '../features/summary/RevisionEditorPage';
 import { ProfilePage } from '../features/profile/ProfilePage';
 import { LeaderboardPage } from '../features/leaderboard/LeaderboardPage';
 import { ReportPage } from '../features/report/ReportPage';
+import { AppLayout } from '../features/layout/AppLayout';
 import { AuthProvider, useAuth } from '../features/auth/AuthContext';
 import { Toaster } from 'react-hot-toast';
 
@@ -24,22 +25,21 @@ const queryClient = new QueryClient({
   },
 });
 
-// A simple protected route wrapper
+/** Requires a logged-in user — redirects to /login otherwise */
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { token, isLoading } = useAuth();
-  
-  if (isLoading) {
-    return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>;
-  }
-  
-  if (!token) {
-    return <Navigate to="/login" replace />;
-  }
-  
+  const { user, isLoading } = useAuth();
+  if (isLoading) return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>;
+  if (!user) return <Navigate to="/login" replace />;
   return <>{children}</>;
 }
 
-import { AppLayout } from '../features/layout/AppLayout';
+/** Redirects already-authenticated users straight to /dashboard */
+function AuthRedirect({ children }: { children: React.ReactNode }) {
+  const { user, isLoading } = useAuth();
+  if (isLoading) return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>;
+  if (user) return <Navigate to="/dashboard" replace />;
+  return <>{children}</>;
+}
 
 export default function App() {
   return (
@@ -48,12 +48,13 @@ export default function App() {
       <AuthProvider>
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<LandingPage />} />
+            {/* Public routes — redirect to /dashboard if already logged in */}
+            <Route path="/" element={<AuthRedirect><LandingPage /></AuthRedirect>} />
             <Route path="/how-it-works" element={<HowItWorksPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            
-            {/* Routes wrapped in the global authenticated layout with sidebar */}
+            <Route path="/login" element={<AuthRedirect><LoginPage /></AuthRedirect>} />
+            <Route path="/register" element={<AuthRedirect><RegisterPage /></AuthRedirect>} />
+
+            {/* Protected routes with sidebar layout */}
             <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
               <Route path="/dashboard" element={<ProgressDashboardPage />} />
               <Route path="/new" element={<NewChallengePage />} />
@@ -63,25 +64,10 @@ export default function App() {
               <Route path="/report/:submissionId" element={<ReportPage />} />
             </Route>
 
-            {/* Writing page is full screen, no sidebar */}
-            <Route 
-              path="/writing/:sessionId" 
-              element={
-                <ProtectedRoute>
-                  <WritingPage />
-                </ProtectedRoute>
-              } 
-            />
-            
-            {/* Revision page is also full screen */}
-            <Route 
-              path="/revise/:sessionId" 
-              element={
-                <ProtectedRoute>
-                  <RevisionEditorPage />
-                </ProtectedRoute>
-              } 
-            />
+            {/* Full-screen protected pages (no sidebar) */}
+            <Route path="/writing/:sessionId" element={<ProtectedRoute><WritingPage /></ProtectedRoute>} />
+            <Route path="/revise/:sessionId" element={<ProtectedRoute><RevisionEditorPage /></ProtectedRoute>} />
+
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>

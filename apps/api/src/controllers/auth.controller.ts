@@ -104,7 +104,19 @@ export const login = async (req: Request, res: Response) => {
       return;
     }
 
-    const token = generateToken(user.id);
+    const rememberMe = req.body.rememberMe === true;
+    const token = generateToken(user.id, rememberMe);
+
+    // If rememberMe, set an HTTP-only cookie valid for 5 days
+    if (rememberMe) {
+      res.cookie('auth_token', token, {
+        httpOnly: true,
+        secure: true,          // HTTPS only (Render/Cloudflare are HTTPS)
+        sameSite: 'none',      // Required for cross-origin (pages.dev → render.com)
+        maxAge: 5 * 24 * 60 * 60 * 1000, // 5 days in ms
+        path: '/',
+      });
+    }
 
     const response: { success: boolean; data: AuthResponse } = {
       success: true,
@@ -168,4 +180,14 @@ export const me = async (req: Request, res: Response) => {
     console.error('Me error:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
+};
+export const logout = async (req: Request, res: Response) => {
+  // Clear the persistent auth cookie
+  res.clearCookie('auth_token', {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'none',
+    path: '/',
+  });
+  res.json({ success: true, message: 'Logged out' });
 };

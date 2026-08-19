@@ -23,7 +23,8 @@ export function LoginPage() {
       const res = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        credentials: 'include', // So the Set-Cookie response header is accepted
+        body: JSON.stringify({ email, password, rememberMe }),
       });
       const data = await res.json();
 

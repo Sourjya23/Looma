@@ -1,6 +1,7 @@
 import express from 'express';
 import path from 'path';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { RedisStore } from 'rate-limit-redis';
@@ -28,6 +29,7 @@ app.use(cors({
   credentials: true,
 }));
 app.use(express.json({ limit: '10mb' })); // Increased limit for base64 images
+app.use(cookieParser()); // Parse cookies — needed for HTTP-only auth_token cookie
 app.use(helmet({ crossOriginResourcePolicy: false })); // allow images to be loaded cross-origin if needed
 app.use(morgan(env.NODE_ENV === 'development' ? 'dev' : 'combined'));
 

@@ -2,9 +2,9 @@ import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-for-development';
 
-export const generateToken = (userId: string): string => {
+export const generateToken = (userId: string, rememberMe: boolean = false): string => {
   return jwt.sign({ userId }, JWT_SECRET, {
-    expiresIn: '7d',
+    expiresIn: rememberMe ? '5d' : '24h',
   });
 };
 
