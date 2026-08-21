@@ -210,9 +210,16 @@ export function ReportPage() {
               if (!submission?.content) return 'No content found.';
               let content = submission.content;
               const mistakes = analyses.english?.mistakes || [];
-              const sortedMistakes = [...mistakes].sort((a: any, b: any) => (b.originalText?.length || 0) - (a.originalText?.length || 0));
+              const vocabImprovements = (analyses.english?.vocabularyImprovements || []).map((v: any) => ({
+                originalText: v.originalText,
+                correction: v.betterText,
+                explanation: v.explanation,
+                category: 'word_choice'
+              }));
               
-              sortedMistakes.forEach((mistake: any) => {
+              const allHighlights = [...mistakes, ...vocabImprovements].sort((a: any, b: any) => (b.originalText?.length || 0) - (a.originalText?.length || 0));
+              
+              allHighlights.forEach((mistake: any) => {
                 if (!mistake.originalText || mistake.originalText.length < 3) return;
                 // Escape regex special chars
                 let escapedText = mistake.originalText.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
