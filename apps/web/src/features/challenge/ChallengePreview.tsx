@@ -49,23 +49,26 @@ export function ChallengePreview({ token, onStart, initialDifficulty = 'intermed
   }, []);
 
   const handleRegenerate = () => {
-    generateChallenge(configDifficulty, configTime, configWordTarget);
+    const confirmed = window.confirm('Are you sure you want to regenerate with the selected settings?');
+    if (confirmed) {
+      generateChallenge(configDifficulty, configTime, configWordTarget);
+    }
   };
 
   const handleDifficultyChange = (diff: string) => {
     setConfigDifficulty(diff);
-    generateChallenge(diff, configTime, configWordTarget);
+    // Removed auto-generation
   };
 
   const handleTimeChange = (mins: number) => {
     const newTime = mins * 60;
     setConfigTime(newTime);
-    generateChallenge(configDifficulty, newTime, configWordTarget);
+    // Removed auto-generation
   };
 
   const handleWordChange = (words: number) => {
     setConfigWordTarget(words);
-    generateChallenge(configDifficulty, configTime, words);
+    // Removed auto-generation
   };
 
   return (
@@ -170,7 +173,7 @@ export function ChallengePreview({ token, onStart, initialDifficulty = 'intermed
 
           <div style={{ display: 'flex', gap: '1rem' }}>
             <button onClick={handleRegenerate} className="btn-pill btn-pill-outline" style={{ flex: 1, justifyContent: 'center', padding: '1rem', fontSize: '1.125rem' }}>
-              Regenerate
+              Confirm & Regenerate
             </button>
             <button onClick={() => onStart(challenge, { time: configTime, words: configWordTarget, diff: configDifficulty })} className="btn-pill btn-pill-dark" style={{ flex: 2, justifyContent: 'center', padding: '1rem', fontSize: '1.125rem' }}>
               Start Writing
@@ -181,3 +184,4 @@ export function ChallengePreview({ token, onStart, initialDifficulty = 'intermed
     </div>
   );
 }
+
