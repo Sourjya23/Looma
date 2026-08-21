@@ -14,19 +14,30 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(
     () => localStorage.getItem('token') || sessionStorage.getItem('token')
   );
-  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(() => {
+    const savedUser = localStorage.getItem('user') || sessionStorage.getItem('user');
+    try {
+      return savedUser ? JSON.parse(savedUser) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  // Only block the UI if we have a token but no user object yet.
+  // Otherwise, we are either fully logged out, or we have both and can optimistically render.
+  const [isLoading, setIsLoading] = useState(() => {
+    const hasToken = !!(localStorage.getItem('token') || sessionStorage.getItem('token'));
+    const hasUser = !!(localStorage.getItem('user') || sessionStorage.getItem('user'));
+    return hasToken && !hasUser; 
+  });
 
   useEffect(() => {
     const verifyUser = async () => {
       try {
         // Always call /me with credentials: 'include' so the HTTP-only cookie is sent.
-        // This handles both:
-        //   - token in storage (non-cookie sessions / "no remember me")
-        //   - HTTP-only cookie (persistent "remember me" sessions, no token in storage)
         const headers: Record<string, string> = {};
         if (token) {
           headers['Authorization'] = `Bearer ${token}`;
@@ -40,17 +51,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (data.success) {
           setUser(data.data);
+          // Update cached user
+          if (localStorage.getItem('token')) {
+            localStorage.setItem('user', JSON.stringify(data.data));
+          } else if (sessionStorage.getItem('token')) {
+            sessionStorage.setItem('user', JSON.stringify(data.data));
+          } else {
+            // Logged in via cookie only
+            setToken(data.data.token || null);
+          }
         } else {
           // Session invalid — clear storage
           setToken(null);
+          setUser(null);
           localStorage.removeItem('token');
+          localStorage.removeItem('user');
           sessionStorage.removeItem('token');
+          sessionStorage.removeItem('user');
         }
       } catch (e) {
         console.error('Failed to verify session', e);
         setToken(null);
+        setUser(null);
         localStorage.removeItem('token');
+        localStorage.removeItem('user');
         sessionStorage.removeItem('token');
+        sessionStorage.removeItem('user');
       } finally {
         setIsLoading(false);
       }
@@ -58,22 +84,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     verifyUser();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Run once on mount — not every time token changes
+  }, []); // Run once on mount
 
   const login = (newToken: string, newUser: User, rememberMe: boolean = true) => {
     setToken(newToken);
     setUser(newUser);
     if (rememberMe) {
       localStorage.setItem('token', newToken);
+      localStorage.setItem('user', JSON.stringify(newUser));
       sessionStorage.removeItem('token');
+      sessionStorage.removeItem('user');
     } else {
       sessionStorage.setItem('token', newToken);
+      sessionStorage.setItem('user', JSON.stringify(newUser));
       localStorage.removeItem('token');
+      localStorage.removeItem('user');
     }
   };
 
   const logout = async () => {
-    // Tell backend to clear the HTTP-only cookie
     try {
       await fetch(`${API_BASE}/auth/logout`, {
         method: 'POST',
@@ -85,12 +114,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(null);
     setUser(null);
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     sessionStorage.removeItem('token');
+    sessionStorage.removeItem('user');
   };
 
   const updateUser = (updatedFields: Partial<User>) => {
     if (user) {
-      setUser({ ...user, ...updatedFields });
+      const newUser = { ...user, ...updatedFields };
+      setUser(newUser);
+      
+      // Update cache
+      if (localStorage.getItem('user')) {
+        localStorage.setItem('user', JSON.stringify(newUser));
+      } else if (sessionStorage.getItem('user')) {
+        sessionStorage.setItem('user', JSON.stringify(newUser));
+      }
     }
   };
 
