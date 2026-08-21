@@ -172,26 +172,28 @@ export const submitSession = async (req: Request, res: Response) => {
     if (newSubmission) {
       await GamificationService.awardXP(userId, xpAmount, 'completed_writing', newSubmission.id);
       
-      // Trigger AI Analysis Pipeline
-      const { aiQueue } = await import('../services/queue.service.js');
-      await aiQueue.add('english-analysis', {
-        submissionId: newSubmission.id,
-        content,
-        challengePrompt: result.challenge?.prompt || '',
-        role: 'english'
-      });
-      await aiQueue.add('story-analysis', {
-        submissionId: newSubmission.id,
-        content,
-        challengePrompt: result.challenge?.prompt || '',
-        role: 'story'
-      });
-      await aiQueue.add('director-analysis', {
-        submissionId: newSubmission.id,
-        content,
-        challengePrompt: result.challenge?.prompt || '',
-        role: 'director'
-      });
+      // Trigger AI Analysis Pipeline if word count is sufficient
+      if (wordCount >= 50) {
+        const { aiQueue } = await import('../services/queue.service.js');
+        await aiQueue.add('english-analysis', {
+          submissionId: newSubmission.id,
+          content,
+          challengePrompt: result.challenge?.prompt || '',
+          role: 'english'
+        });
+        await aiQueue.add('story-analysis', {
+          submissionId: newSubmission.id,
+          content,
+          challengePrompt: result.challenge?.prompt || '',
+          role: 'story'
+        });
+        await aiQueue.add('director-analysis', {
+          submissionId: newSubmission.id,
+          content,
+          challengePrompt: result.challenge?.prompt || '',
+          role: 'director'
+        });
+      }
     }
     await GamificationService.evaluateStreak(userId);
     // Background check achievements

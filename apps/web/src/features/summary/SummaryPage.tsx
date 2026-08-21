@@ -106,10 +106,16 @@ export function SummaryPage() {
     setAnalysisState('ANALYZING');
     setPollCount(0);
     try {
-      await fetch(`${API_BASE}/submissions/${currentSub.id}/analyze-all`, {
+      const res = await fetch(`${API_BASE}/submissions/${currentSub.id}/analyze-all`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` }
       });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error || 'Failed to start AI analysis');
+        setAnalysisState('IDLE');
+        return;
+      }
       toast.success('AI analysis started!');
       // Polling will handle the rest via useEffect
     } catch (e) {

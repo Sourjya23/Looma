@@ -229,7 +229,13 @@ export function WritingPage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ content: editor.getHTML(), title })
+        body: JSON.stringify({ 
+          content: editor.getHTML(), 
+          title,
+          wordCount,
+          characterCount: editor.getText().length,
+          timeSpent: elapsedTime 
+        })
       }).catch(() => { });
     }, 2000);
 
