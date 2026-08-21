@@ -17,15 +17,16 @@ class ApiClient {
   setToken(token: string | null) {
     this.token = token;
     if (token) {
-      localStorage.setItem('auth_token', token);
+      localStorage.setItem('token', token);
     } else {
-      localStorage.removeItem('auth_token');
+      localStorage.removeItem('token');
+      sessionStorage.removeItem('token');
     }
   }
 
   getToken(): string | null {
     if (!this.token) {
-      this.token = localStorage.getItem('auth_token');
+      this.token = localStorage.getItem('token') || sessionStorage.getItem('token');
     }
     return this.token;
   }
