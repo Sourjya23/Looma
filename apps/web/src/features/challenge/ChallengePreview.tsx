@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
-import { API_BASE } from '@/lib/api';
+import { api } from '@/lib/api';
 // Note: update shared-types later if needed, or use string
 
 interface ChallengePreviewProps {
-  token: string;
+  token: string; // kept for backwards compatibility if passed by parent, though unused here
   onStart: (challengePayload: any, config: any) => void;
   initialDifficulty?: string;
 }
 
-export function ChallengePreview({ token, onStart, initialDifficulty = 'intermediate' }: ChallengePreviewProps) {
+export function ChallengePreview({ onStart, initialDifficulty = 'intermediate' }: ChallengePreviewProps) {
   const [challenge, setChallenge] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -21,22 +21,19 @@ export function ChallengePreview({ token, onStart, initialDifficulty = 'intermed
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${API_BASE}/challenges/generate`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}` 
-        },
-        body: JSON.stringify({ difficulty: diff, timeLimit: time / 60, wordTarget: words, mode: 'normal' })
+      const data = await api.post<any>('/challenges/generate', { 
+        difficulty: diff, 
+        timeLimit: time / 60, 
+        wordTarget: words, 
+        mode: 'normal' 
       });
-      const data = await res.json();
       if (data.success) {
         setChallenge(data.data);
       } else {
         setError(data.message || 'Failed to generate challenge.');
       }
-    } catch (e) {
-      setError('Error connecting to the server.');
+    } catch (e: any) {
+      setError(e.message || 'Error connecting to the server.');
     } finally {
       setLoading(false);
     }
