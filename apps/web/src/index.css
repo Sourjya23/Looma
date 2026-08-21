@@ -558,15 +558,13 @@ h1, h2, h3, h4, h5, h6 {
   
   nav {
     padding: 0 1rem !important;
-    flex-wrap: wrap;
-    justify-content: center !important;
+    justify-content: space-between !important;
     gap: 0.5rem;
   }
   
   nav > div {
     gap: 1rem !important;
-    flex-wrap: wrap;
-    justify-content: center;
+    justify-content: flex-end;
   }
   
   header {

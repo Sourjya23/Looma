@@ -15,6 +15,7 @@ export function ReportPage() {
   const [analyses, setAnalyses] = useState<{ english?: any, story?: any, director?: any }>({});
   const reportRef = useRef<HTMLDivElement>(null);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [isStoryVisible, setIsStoryVisible] = useState(true);
 
   useEffect(() => {
     const fetchReportData = async () => {
@@ -166,11 +167,23 @@ export function ReportPage() {
         <div ref={reportRef} style={{ width: '100%', maxWidth: '1300px', backgroundColor: '#fff', padding: '3rem', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
           
           <h1 style={{ fontSize: '2.5rem', marginBottom: '0.5rem', textAlign: 'center' }}>{submission.title || 'Your Story'}</h1>
-          <div id="report-story-wordcount" style={{ textAlign: 'center', color: 'var(--color-text-secondary)', marginBottom: '3rem' }}>
+          <div id="report-story-wordcount" style={{ textAlign: 'center', color: 'var(--color-text-secondary)', marginBottom: '1.5rem' }}>
             <span>{submission.wordCount} words</span>
           </div>
 
-          {analyses.english?.mistakes?.length > 0 && (
+          <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+            <button 
+              onClick={() => setIsStoryVisible(!isStoryVisible)} 
+              className="btn-pill btn-pill-outline"
+              style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}
+            >
+              {isStoryVisible ? 'Hide Story Content' : 'Show Story Content'}
+            </button>
+          </div>
+
+          {isStoryVisible && (
+            <div style={{ animation: 'fade-in 0.3s ease-in-out' }}>
+              {analyses.english?.mistakes?.length > 0 && (
             <div style={{ marginBottom: '2rem', padding: '1.25rem 1.5rem', backgroundColor: 'var(--color-bg-primary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
               <h3 style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-secondary)', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Analysis Highlights Guide</h3>
               <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', fontSize: '0.9rem', color: 'var(--color-text-primary)' }}>
@@ -247,6 +260,8 @@ export function ReportPage() {
               return content;
             })() }}
           />
+            </div>
+          )}
 
           <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: '3rem 0' }} />
 
