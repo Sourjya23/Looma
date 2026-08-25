@@ -1,5 +1,6 @@
 import { EnglishAnalysisSchema, EnglishAnalysisType, StoryAnalysisSchema, StoryAnalysisType, DirectorAnalysisSchema, DirectorAnalysisType } from '../schemas/analysis.schema.js';
-import { generateEnglishTeacherPrompt, generateStoryEditorPrompt, generateDirectorPrompt, generateProfileInterpretationPrompt } from './ai.prompts.js';
+import { CoverDesignSchema, CoverDesignType } from '../schemas/cover.schema.js';
+import { generateEnglishTeacherPrompt, generateStoryEditorPrompt, generateDirectorPrompt, generateProfileInterpretationPrompt, generateCoverDesignPrompt } from './ai.prompts.js';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import OpenAI from 'openai';
 import { jsonrepair } from 'jsonrepair';
@@ -251,6 +252,54 @@ export class AIService {
       
     } catch (error) {
       console.error('Error communicating with AI API:', error);
+      throw error;
+    }
+  }
+
+  static async generateCoverArtDesignSpec(title: string | null, content: string): Promise<string> {
+    try {
+      const schemaJson = JSON.stringify(zodToJsonSchema(CoverDesignSchema as any));
+      const prompt = generateCoverDesignPrompt(title, content, schemaJson);
+
+      const completion = await callWithRotation(client => client.chat.completions.create({
+        messages: [{ role: 'user', content: prompt }],
+        model: MODEL_NAME,
+        max_tokens: 4000,
+        temperature: 0.3,
+        response_format: { type: 'json_object' }
+      }));
+
+      const responseContent = completion.choices[0]?.message?.content;
+      if (!responseContent) throw new Error("AI returned empty response");
+
+      const json = JSON.parse(this.sanitizeJSON(responseContent));
+      const design: CoverDesignType = CoverDesignSchema.parse(json);
+
+      // Prompt Compiler: Compile the JSON into a final universal prompt
+      const compiledPrompt = `A professional commercial book cover for "${design.book.title}".
+Author: ${design.book.author}
+Genre: ${design.book.genre}.
+
+VISUAL CONCEPT: ${design.concept.dominant_visual_concept}
+PRIMARY SUBJECT: ${design.subjects.primary}
+SYMBOLIC OBJECT: ${design.subjects.symbolic_object || 'none'}
+SETTING: ${design.environment.setting}
+
+COMPOSITION: ${design.composition.perspective}, ${design.composition.focal_point}
+LIGHTING: ${design.lighting.primary}, ${design.lighting.contrast}
+STYLE: ${design.style.art_direction}, ${design.style.realism}, ${design.style.detail}
+PALETTE: ${design.palette.dominant.join(', ')} with ${design.palette.accent.join(', ')} accents.
+
+The cover must have a clear visual hierarchy.
+Do not attempt to depict every event in the story. Use one dominant visual metaphor.
+Maintain intentional negative space for typography.
+Text to include on the cover: "${design.typography.title.text}" and "${design.typography.author?.text || design.book.author}".
+Make the text highly legible and elegantly integrated into the artwork.`;
+
+      return compiledPrompt;
+      
+    } catch (error) {
+      console.error('Error generating cover design spec:', error);
       throw error;
     }
   }

@@ -416,3 +416,23 @@ Return your response as a JSON object with the following fields EXACTLY:
 DO NOT include markdown formatting or extra explanations. Output raw JSON only.
 `;
 }
+
+export function generateCoverDesignPrompt(title: string | null, content: string, schemaJson: string): string {
+  return `Analyze the story strictly for visual book-cover design.
+Do not rewrite the story. Do not invent major plot elements.
+Extract only details that can contribute to the visual representation.
+
+VISUAL SIMPLICITY RULE:
+Do not attempt to illustrate the entire story.
+Choose ONE dominant visual metaphor and build the cover around it.
+Use secondary details only when they strengthen the central concept.
+
+BOOK DETAILS:
+Title: ${title || 'Untitled'}
+Story Content snippet: ${content.substring(0, 3000)}
+
+Your output MUST be a valid JSON object matching the following schema.
+Schema:
+${schemaJson}
+`;
+}

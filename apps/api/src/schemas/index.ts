@@ -53,3 +53,5 @@ export const loginSchema = z.object({
     password: z.string()
   })
 });
+
+export * from './cover.schema.js';
