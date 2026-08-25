@@ -116,6 +116,7 @@ export const aiWorker = new Worker('ai-analysis', async (job: Job<AIJobData>) =>
 }, { 
   connection: workerConnection,
   concurrency: 1, // Process one by one to avoid Groq burst rate limits
+  maxStalledCount: 3, // Retry jobs if server restarts abruptly
 });
 
 aiWorker.on('completed', (job) => {
