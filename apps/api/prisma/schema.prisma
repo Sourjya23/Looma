@@ -28,6 +28,7 @@ model User {
   lastActiveDate   DateTime?
   displayName      String?
   leaderboardOptIn Boolean           @default(true)
+  tier             String            @default("FREE")
   xpEvents         XPEvent[]
   achievements     UserAchievement[]
 }

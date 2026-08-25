@@ -46,6 +46,7 @@ export interface User {
   lastActiveDate: string | null;
   displayName: string | null;
   leaderboardOptIn: boolean;
+  tier: string;
   avatarUrl?: string | null;
 }
 

@@ -495,6 +495,16 @@ export const generateCoverArt = async (req: Request, res: Response) => {
     const userId = req.userId!;
     const submissionId = req.params.id as string;
 
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { tier: true }
+    });
+
+    if (!user || user.tier === 'FREE') {
+      res.status(403).json({ success: false, message: 'Premium feature. Please upgrade to PRO to generate AI cover art.' });
+      return;
+    }
+
     const submission = await prisma.submission.findUnique({
       where: { id: submissionId },
       include: { session: true }

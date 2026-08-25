@@ -58,6 +58,7 @@ export const register = async (req: Request, res: Response) => {
           lastActiveDate: user.lastActiveDate?.toISOString() || null,
           displayName: user.displayName,
           leaderboardOptIn: user.leaderboardOptIn,
+          tier: user.tier,
           avatarUrl: user.avatarUrl
         },
         token,
@@ -133,6 +134,7 @@ export const login = async (req: Request, res: Response) => {
           lastActiveDate: user.lastActiveDate?.toISOString() || null,
           displayName: user.displayName,
           leaderboardOptIn: user.leaderboardOptIn,
+          tier: user.tier,
           avatarUrl: user.avatarUrl
         },
         token,
@@ -173,6 +175,7 @@ export const me = async (req: Request, res: Response) => {
         lastActiveDate: user.lastActiveDate?.toISOString() || null,
         displayName: user.displayName,
         leaderboardOptIn: user.leaderboardOptIn,
+        tier: user.tier,
         avatarUrl: user.avatarUrl
       }
     });

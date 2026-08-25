@@ -1,13 +1,14 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
+import { PricingModal } from '../pricing/PricingModal';
 import html2pdf from 'html2pdf.js';
 import toast from 'react-hot-toast';
 import { API_BASE } from '@/lib/api';
 
 export function ReportPage() {
   const { submissionId } = useParams<{ submissionId: string }>();
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
@@ -17,6 +18,7 @@ export function ReportPage() {
   const [copySuccess, setCopySuccess] = useState(false);
   const [isStoryVisible, setIsStoryVisible] = useState(true);
   const [generatingCover, setGeneratingCover] = useState(false);
+  const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchReportData = async () => {
@@ -116,6 +118,11 @@ export function ReportPage() {
   };
 
   const handleGenerateCover = async () => {
+    if (user?.tier === 'FREE') {
+      setIsPricingModalOpen(true);
+      return;
+    }
+
     if (!submission || generatingCover) return;
     
     setGeneratingCover(true);
@@ -306,13 +313,9 @@ export function ReportPage() {
               
               allHighlights.forEach((mistake: any) => {
                 if (!mistake.originalText || mistake.originalText.length < 3) return;
-                // Escape regex special chars
                 let escapedText = mistake.originalText.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                // Normalize smart quotes: match both straight and curly forms
-                // Rich text editor saves curly quotes, but AI returns straight ones
                 escapedText = escapedText.replace(/'/g, "['\u2018\u2019]");
                 escapedText = escapedText.replace(/"/g, '["\u201C\u201D]');
-                // Make spaces flexible to handle HTML spacing (nbsp, br tags, etc.)
                 escapedText = escapedText.replace(/\s+/g, '(?:\\s|&nbsp;|<br\\s*/?>|<[^>]+>)*\\s*(?:\\s|&nbsp;|<br\\s*/?>)*');
                 const regex = new RegExp(`(${escapedText})`, 'gi'); 
                 
@@ -621,6 +624,11 @@ export function ReportPage() {
 
         </div>
       </main>
+
+      <PricingModal 
+        isOpen={isPricingModalOpen} 
+        onClose={() => setIsPricingModalOpen(false)} 
+      />
     </div>
   );
 }
