@@ -39,6 +39,28 @@ export const autosaveSessionSchema = z.object({
   })
 });
 
+export const submitRevisionSchema = z.object({
+  body: z.object({
+    content: z.string().min(1, 'Content is required'),
+    wordCount: z.number().int().min(0),
+    characterCount: z.number().int().min(0),
+    activeWritingTime: z.number().int().min(0),
+    parentSubmissionId: z.string()
+  }),
+  params: z.object({
+    id: z.string()
+  })
+});
+
+export const autosaveRevisionSchema = z.object({
+  body: z.object({
+    content: z.string()
+  }),
+  params: z.object({
+    id: z.string()
+  })
+});
+
 export const registerSchema = z.object({
   body: z.object({
     email: z.string().email(),
