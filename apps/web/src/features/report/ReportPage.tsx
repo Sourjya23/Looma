@@ -16,14 +16,11 @@ export function ReportPage() {
   const reportRef = useRef<HTMLDivElement>(null);
   const [copySuccess, setCopySuccess] = useState(false);
   const [isStoryVisible, setIsStoryVisible] = useState(true);
+  const [generatingCover, setGeneratingCover] = useState(false);
 
   useEffect(() => {
     const fetchReportData = async () => {
       try {
-        // Fetch submission details (we can get it from the session if needed, or create a new endpoint)
-        // Since we don't have a getSubmission by ID yet, we fetch session and find it
-        // Wait, we need the session ID to fetch session. Let's create a quick endpoint or fetch session if we have sessionId.
-        // The user said redirect to `/report/:submissionId`. We need to fetch the submission directly.
         const res = await fetch(`${API_BASE}/sessions/submissions/${submissionId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -78,7 +75,6 @@ export function ReportPage() {
 
   const handleCopyStory = async () => {
     if (submission?.content) {
-      // Strip HTML tags for clean clipboard text
       const tempDiv = document.createElement('div');
       tempDiv.innerHTML = submission.content;
       const plainText = tempDiv.textContent || tempDiv.innerText || '';
@@ -112,7 +108,6 @@ export function ReportPage() {
     );
   }
 
-  // ── SVG highlight helpers ────────────────────────────────────────────────
   const getSvgBg = (category: string) => {
     if (category === 'grammar') return `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none' viewBox='0 0 100 100'%3E%3Cpath d='M 5,50 C 5,15 95,15 95,50 C 95,85 5,85 5,50 C 5,40 20,30 35,30' fill='none' stroke='%23F43F5E' stroke-width='2' vector-effect='non-scaling-stroke' stroke-linecap='round'/%3E%3C/svg%3E")`;
     if (category === 'spelling') return `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none' viewBox='0 0 100 100'%3E%3Cpath d='M 0,85 Q 12.5,70 25,85 T 50,85 T 75,85 T 100,85' fill='none' stroke='%233B82F6' stroke-width='2.5' vector-effect='non-scaling-stroke' stroke-linecap='round'/%3E%3C/svg%3E")`;
@@ -120,7 +115,32 @@ export function ReportPage() {
     return `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none' viewBox='0 0 100 100'%3E%3Cpath d='M -5,80 L 105,75' fill='none' stroke='%2310B981' stroke-width='35' stroke-linecap='round' opacity='0.4'/%3E%3C/svg%3E")`;
   };
 
-  /** Render correction text with changed words highlighted using category SVG */
+  const handleGenerateCover = async () => {
+    if (!submission || generatingCover) return;
+    
+    setGeneratingCover(true);
+    try {
+      const res = await fetch(`${API_BASE}/sessions/submissions/${submission.id}/cover`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const data = await res.json();
+      if (data.success && data.data?.coverArtUrl) {
+        setSubmission({ ...submission, coverArtUrl: data.data.coverArtUrl });
+        toast.success('Book cover generated successfully!');
+      } else {
+        toast.error(data.message || 'Failed to generate cover');
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Error generating cover art');
+    } finally {
+      setGeneratingCover(false);
+    }
+  };
+
   const renderCorrectionDiff = (original: string, correction: string, category: string) => {
     const clean = (s: string) => (s || '').replace(/<[^>]+>/g, '').replace(/[\u201C\u201D]/g, '"').replace(/[\u2018\u2019]/g, "'");
     const origTokens = clean(original).split(/(\s+)/);
@@ -138,14 +158,13 @@ export function ReportPage() {
   };
 
   return (
-
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: 'var(--color-bg)' }}>
-      <header style={{ padding: '1.5rem 2rem', borderBottom: '1px solid var(--color-border)', backgroundColor: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <header className="report-header" style={{ padding: '1.5rem 2rem', borderBottom: '1px solid var(--color-border)', backgroundColor: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h1 style={{ fontSize: '1.25rem', margin: 0 }}>AI Feedback Report</h1>
           <p style={{ color: 'var(--color-text-secondary)', margin: 0, fontSize: '0.875rem' }}>{submission.title || 'Untitled Story'}</p>
         </div>
-        <div style={{ display: 'flex', gap: '1rem' }}>
+        <div className="report-header-actions" style={{ display: 'flex', gap: '1rem' }}>
           <button onClick={() => navigate(`/summary/${submission.sessionId}`)} className="btn-pill btn-pill-outline">
             Back to Summary
           </button>
@@ -163,12 +182,65 @@ export function ReportPage() {
         </div>
       </header>
 
-      <main style={{ flex: 1, padding: '2rem', display: 'flex', justifyContent: 'center' }}>
-        <div ref={reportRef} style={{ width: '100%', maxWidth: '1300px', backgroundColor: '#fff', padding: '3rem', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+      <main className="report-main" style={{ flex: 1, padding: '2rem', display: 'flex', justifyContent: 'center' }}>
+        <div ref={reportRef} className="report-body" style={{ width: '100%', maxWidth: '1300px', backgroundColor: '#fff', padding: '3rem', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
           
           <h1 style={{ fontSize: '2.5rem', marginBottom: '0.5rem', textAlign: 'center' }}>{submission.title || 'Your Story'}</h1>
           <div id="report-story-wordcount" style={{ textAlign: 'center', color: 'var(--color-text-secondary)', marginBottom: '1.5rem' }}>
-            <span>{submission.wordCount} words</span>
+            {submission.wordCount} words • Version {submission.version}
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '3rem' }}>
+            {submission.coverArtUrl ? (
+              <div style={{ 
+                width: '100%', maxWidth: '400px', 
+                borderRadius: '12px', overflow: 'hidden', 
+                boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
+                border: '1px solid var(--color-border)',
+                backgroundColor: 'var(--color-bg-alt)'
+              }}>
+                <img 
+                  src={submission.coverArtUrl} 
+                  alt={`Cover for ${submission.title || 'Untitled'}`} 
+                  style={{ width: '100%', height: 'auto', display: 'block' }}
+                />
+              </div>
+            ) : (
+              <div style={{ 
+                padding: '2rem', 
+                backgroundColor: 'var(--color-bg-secondary)', 
+                borderRadius: '12px', 
+                border: '1px dashed var(--color-border)',
+                textAlign: 'center',
+                maxWidth: '500px',
+                width: '100%'
+              }}>
+                <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '0.5rem', color: 'var(--color-text-primary)' }}>
+                  Publish-Ready?
+                </h3>
+                <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem', marginBottom: '1.5rem', lineHeight: 1.5 }}>
+                  If you think this story is good enough to be a book, you can generate a custom AI cover art for it. 
+                </p>
+                <button 
+                  onClick={handleGenerateCover}
+                  disabled={generatingCover}
+                  className="btn-pill btn-pill-dark"
+                  style={{ margin: '0 auto', display: 'flex', gap: '0.5rem', alignItems: 'center' }}
+                >
+                  {generatingCover ? (
+                    <>
+                      <div className="spinner" style={{ width: '16px', height: '16px', borderTopColor: '#fff' }}></div>
+                      Generating Cover...
+                    </>
+                  ) : (
+                    <>
+                      <span style={{ fontSize: '1.125rem' }}>✨</span>
+                      Generate Book Cover
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
           </div>
 
           <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
@@ -378,7 +450,7 @@ export function ReportPage() {
                 Score: <span style={{ color: '#16a34a' }}>{analyses.story.overallScore}/100</span>
               </div>
               
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+              <div className="score-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
                 <div style={{ padding: '1rem', backgroundColor: '#f0fdf4', borderRadius: '0.5rem', textAlign: 'center' }}>
                   <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Concept</div>
                   <div style={{ fontSize: '1.25rem', fontWeight: 600, color: '#16a34a' }}>{analyses.story.conceptScore}</div>
@@ -479,7 +551,7 @@ export function ReportPage() {
                 Score: <span style={{ color: '#9333ea' }}>{analyses.director.overallScore}/100</span>
               </div>
               
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+              <div className="score-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
                 <div style={{ padding: '1rem', backgroundColor: '#faf5ff', borderRadius: '0.5rem', textAlign: 'center' }}>
                   <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Visual Storytelling</div>
                   <div style={{ fontSize: '1.25rem', fontWeight: 600, color: '#9333ea' }}>{analyses.director.visualStorytellingScore}</div>

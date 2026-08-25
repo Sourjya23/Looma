@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createSession, getSession, getSubmission, submitSession, autosaveSession, startSession, pauseSession, resumeSession, autosaveRevision, submitRevision, deleteSession, toggleBookmark } from '../controllers/session.controller.js';
+import { createSession, getSession, getSubmission, submitSession, autosaveSession, startSession, pauseSession, resumeSession, autosaveRevision, submitRevision, deleteSession, toggleBookmark, generateCoverArt } from '../controllers/session.controller.js';
 import { requireAuth } from '../middleware/auth.middleware.js';
 import { validate } from '../middleware/validate.middleware.js';
 import { createSessionSchema, submitSessionSchema, autosaveSessionSchema } from '../schemas/index.js';
@@ -19,5 +19,6 @@ router.put('/:id/bookmark', requireAuth, toggleBookmark);
 router.delete('/:id', requireAuth, deleteSession);
 
 router.get('/submissions/:id', requireAuth, getSubmission);
+router.post('/submissions/:id/cover', requireAuth, generateCoverArt);
 
 export default router;

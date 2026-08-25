@@ -90,6 +90,7 @@ model Submission {
   version            Int               @default(1)
   parentSubmissionId String?
   submittedAt        DateTime          @default(now())
+  coverArtUrl        String?
   detectedMistakes   DetectedMistake[]
   directorAnalysis   DirectorAnalysis?
   englishAnalysis    EnglishAnalysis?

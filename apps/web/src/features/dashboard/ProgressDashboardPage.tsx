@@ -81,7 +81,7 @@ export function ProgressDashboardPage() {
     <div style={{ maxWidth: '1200px', margin: '0 auto', width: '100%', padding: '2rem' }}>
       
       {/* HEADER & FILTERS */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2rem' }}>
+      <div className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2rem' }}>
         <div>
           <p className="eyebrow" style={{ color: 'var(--color-text-primary)', marginBottom: '0.5rem' }}>Overview</p>
           <h1 style={{ fontSize: '2rem', margin: 0, fontWeight: 500, letterSpacing: '-0.02em', color: 'var(--color-text-primary)' }}>
@@ -105,7 +105,7 @@ export function ProgressDashboardPage() {
       <GamificationWidget />
 
       {/* STATS GRID */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '3rem' }}>
+      <div className="dashboard-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '3rem' }}>
         <div style={{ backgroundColor: 'var(--color-bg-secondary)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>
           <div style={{ fontSize: '2rem', fontWeight: 600, color: 'var(--color-text-primary)', marginBottom: '0.25rem' }}>{data?.totalSessions}</div>
           <div style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)' }}>Exercises completed</div>
@@ -139,9 +139,9 @@ export function ProgressDashboardPage() {
         
         {/* SCORE ANALYTICS */}
         <div style={{ backgroundColor: 'var(--color-bg-primary)', padding: '2rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
+          <div className="dashboard-perf-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--color-text-primary)', margin: 0 }}>Performance</h2>
-            <div style={{ display: 'flex', gap: '1.5rem' }}>
+            <div className="dashboard-perf-trends" style={{ display: 'flex', gap: '1.5rem' }}>
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)', textTransform: 'uppercase' }}>English</div>
                 <div style={{ fontSize: '1.125rem', fontWeight: 600 }}>{data?.trends?.english?.value} {getTrendIcon(data?.trends?.english?.state)}</div>
@@ -177,7 +177,7 @@ export function ProgressDashboardPage() {
 
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem', marginBottom: '3rem' }}>
+      <div className="dashboard-chart-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem', marginBottom: '3rem' }}>
         
         {/* WRITING SPEED */}
         <div style={{ backgroundColor: 'var(--color-bg-primary)', padding: '2rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>
@@ -213,7 +213,7 @@ export function ProgressDashboardPage() {
 
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', marginBottom: '3rem' }}>
+      <div className="dashboard-strengths-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', marginBottom: '3rem' }}>
         {/* STRENGTHS */}
         <div style={{ backgroundColor: 'var(--color-bg-primary)', padding: '2rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>
           <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--color-text-primary)', marginBottom: '1.5rem', marginTop: 0 }}>Your Strengths</h2>
@@ -252,7 +252,7 @@ export function ProgressDashboardPage() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', marginBottom: '3rem' }}>
+      <div className="dashboard-strengths-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', marginBottom: '3rem' }}>
         {/* TIME DISCIPLINE */}
         <div style={{ backgroundColor: 'var(--color-bg-primary)', padding: '2rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>
           <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--color-text-primary)', marginBottom: '1.5rem', marginTop: 0 }}>Time Discipline</h2>
@@ -291,6 +291,7 @@ export function ProgressDashboardPage() {
             <div 
               key={session.id} 
               onClick={() => navigate(`/summary/${session.id}`)}
+              className="dashboard-recent-item"
               style={{ backgroundColor: 'var(--color-bg-secondary)', padding: '1.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'background-color 0.2s' }}
               onMouseOver={e => e.currentTarget.style.backgroundColor = 'var(--color-bg-primary)'}
               onMouseOut={e => e.currentTarget.style.backgroundColor = 'var(--color-bg-secondary)'}
@@ -311,7 +312,7 @@ export function ProgressDashboardPage() {
                   <span>{session.wordCount} words</span>
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: '1rem', textAlign: 'right' }}>
+              <div className="dashboard-recent-scores" style={{ display: 'flex', gap: '1rem', textAlign: 'right' }}>
                 <div style={{ fontSize: '0.875rem' }}>
                   <div style={{ color: 'var(--color-text-muted)', textTransform: 'uppercase', fontSize: '0.7rem' }}>English</div>
                   <div style={{ fontWeight: 600, color: '#0a0a0a' }}>{session.scores.english}</div>

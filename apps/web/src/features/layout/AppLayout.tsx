@@ -37,7 +37,7 @@ export function AppLayout() {
         onClick={() => setIsSidebarOpen(false)}
       />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        <nav style={{ height: '80px', padding: '0 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg-primary)' }}>
+        <nav className="app-navbar" style={{ height: '80px', padding: '0 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg-primary)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <button 
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -53,26 +53,26 @@ export function AppLayout() {
               </svg>
             </button>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-            <Link to="/leaderboard" style={{ textDecoration: 'none', color: 'var(--color-text-primary)', fontWeight: 500, fontSize: '0.875rem' }}>
+          <div className="nav-right" style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+            <Link to="/leaderboard" className="nav-text-link" style={{ textDecoration: 'none', color: 'var(--color-text-primary)', fontWeight: 500, fontSize: '0.875rem' }}>
               Leaderboard
             </Link>
-            <Link to="/dashboard" style={{ textDecoration: 'none', color: 'var(--color-text-primary)', fontWeight: 500, fontSize: '0.875rem' }}>
+            <Link to="/dashboard" className="nav-text-link" style={{ textDecoration: 'none', color: 'var(--color-text-primary)', fontWeight: 500, fontSize: '0.875rem' }}>
               Dashboard
             </Link>
             
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }} onClick={() => navigate('/profile')}>
               {user?.avatarUrl ? (
-                <img src={getAvatarUrl(user.avatarUrl)} alt="Avatar" style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--color-border)' }} />
+                <img src={getAvatarUrl(user.avatarUrl)} alt="Avatar" className="nav-avatar" style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--color-border)' }} />
               ) : (
-                <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--color-bg-alt)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-secondary)', fontWeight: 600, border: '1px solid var(--color-border)' }}>
+                <div className="nav-avatar" style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--color-bg-alt)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-secondary)', fontWeight: 600, border: '1px solid var(--color-border)' }}>
                   {user?.displayName?.charAt(0)?.toUpperCase() || user?.username?.charAt(0)?.toUpperCase() || 'U'}
                 </div>
               )}
-              <span style={{ fontSize: '0.875rem', color: 'var(--color-text-primary)', fontWeight: 500 }}>{user?.displayName || user?.username}</span>
+              <span className="nav-username" style={{ fontSize: '0.875rem', color: 'var(--color-text-primary)', fontWeight: 500 }}>{user?.displayName || user?.username}</span>
             </div>
 
-            <button onClick={() => { logout(); navigate('/'); }} className="btn-pill btn-pill-outline" style={{ padding: '0.5rem 1.25rem', fontSize: '0.875rem' }}>
+            <button onClick={() => { logout(); navigate('/'); }} className="btn-pill btn-pill-outline nav-logout-btn" style={{ padding: '0.5rem 1.25rem', fontSize: '0.875rem' }}>
               Log out
             </button>
           </div>

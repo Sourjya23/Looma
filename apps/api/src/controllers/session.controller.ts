@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/database.js';
 import { GamificationService } from '../services/gamification.service.js';
+import { generateAndUploadCoverArt } from '../services/cover-art.service.js';
 
 export const createSession = async (req: Request, res: Response) => {
   try {
@@ -485,6 +486,40 @@ export const toggleBookmark = async (req: Request, res: Response) => {
     res.json({ success: true, data: { isBookmarked: updated.isBookmarked } });
   } catch (error) {
     console.error('Error toggling bookmark:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+export const generateCoverArt = async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const submissionId = req.params.id as string;
+
+    const submission = await prisma.submission.findUnique({
+      where: { id: submissionId },
+      include: { session: true }
+    });
+
+    if (!submission || submission.session.userId !== userId) {
+      res.status(404).json({ success: false, message: 'Submission not found' });
+      return;
+    }
+
+    if (submission.coverArtUrl) {
+      res.status(400).json({ success: false, message: 'Cover art already exists' });
+      return;
+    }
+
+    const coverUrl = await generateAndUploadCoverArt(submission.title, submission.content);
+
+    const updated = await prisma.submission.update({
+      where: { id: submissionId },
+      data: { coverArtUrl: coverUrl }
+    });
+
+    res.json({ success: true, data: { coverArtUrl: updated.coverArtUrl } });
+  } catch (error) {
+    console.error('Error generating cover art:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };

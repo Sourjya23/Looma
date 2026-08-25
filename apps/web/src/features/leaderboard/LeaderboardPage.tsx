@@ -53,6 +53,7 @@ export function LeaderboardPage() {
   const renderRankRow = (row: any, isMe: boolean) => (
     <div 
       key={row.userId}
+      className="leaderboard-rank-row"
       style={{
         display: 'flex', 
         alignItems: 'center', 
@@ -65,7 +66,7 @@ export function LeaderboardPage() {
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-        <div style={{ 
+        <div className="rank-badge" style={{ 
           width: '44px', height: '44px', borderRadius: '50%', 
           background: row.rank <= 3 
             ? 'linear-gradient(135deg, var(--color-primary), #818cf8)' 
@@ -79,14 +80,14 @@ export function LeaderboardPage() {
         </div>
         
         {row.avatarUrl ? (
-          <img src={getAvatarUrl(row.avatarUrl)} alt={row.displayName} style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
+          <img src={getAvatarUrl(row.avatarUrl)} alt={row.displayName} className="rank-avatar" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
         ) : (
-          <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-secondary)', fontWeight: 600 }}>
+          <div className="rank-avatar" style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-secondary)', fontWeight: 600 }}>
             {row.displayName?.charAt(0).toUpperCase()}
           </div>
         )}
 
-        <div>
+        <div className="leaderboard-rank-info">
           <div style={{ fontWeight: 600, color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             {row.displayName} 
             {isMe && <span style={{ fontSize: '0.7rem', padding: '0.125rem 0.5rem', borderRadius: '999px', backgroundColor: 'var(--color-primary)', color: '#fff' }}>You</span>}
@@ -108,7 +109,7 @@ export function LeaderboardPage() {
 
   return (
     <div style={{ padding: 'clamp(2rem, 4vw, 4rem)', maxWidth: '800px', margin: '0 auto', width: '100%' }} className="animate-fade-in-up">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+      <div className="leaderboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1 style={{ fontSize: '2.5rem', fontWeight: 500, letterSpacing: '-0.04em', marginBottom: '0.5rem' }}>
             Leaderboard
@@ -147,7 +148,7 @@ export function LeaderboardPage() {
 
       {/* My Stats Card */}
       {myRank && (
-        <div style={{ 
+        <div className="leaderboard-my-card" style={{ 
           background: 'linear-gradient(135deg, #6366f1 0%, #818cf8 100%)', 
           borderRadius: '1rem', 
           padding: '1.5rem 2rem', 
@@ -161,9 +162,9 @@ export function LeaderboardPage() {
         }}>
           <div>
             <div style={{ fontSize: '0.875rem', opacity: 0.8, marginBottom: '0.25rem' }}>Your Rank</div>
-            <div style={{ fontSize: '2.5rem', fontWeight: 700, lineHeight: 1 }}>#{myRank.rank}</div>
+          <div className="rank-number" style={{ fontSize: '2.5rem', fontWeight: 700, lineHeight: 1 }}>#{myRank.rank}</div>
           </div>
-          <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
+          <div className="leaderboard-my-stats" style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>{myRank.xp?.toLocaleString() || 0}</div>
               <div style={{ fontSize: '0.75rem', opacity: 0.8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total XP</div>

@@ -324,7 +324,7 @@ export function WritingPage() {
         backdropFilter: 'blur(10px)',
       }}>
         {/* Editor Header */}
-        <header style={{
+        <header className="writing-header" style={{
           padding: '1rem clamp(1rem, 4vw, 3rem)',
           display: 'flex',
           justifyContent: 'space-between',
@@ -349,7 +349,7 @@ export function WritingPage() {
           )}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+        <div className="writing-header-controls" style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
           {isBoldMode && (
             <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-primary)', background: 'var(--color-border)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
               BOLD MODE
@@ -358,6 +358,7 @@ export function WritingPage() {
           <select 
             value={fontFamily} 
             onChange={(e) => setFontFamily(e.target.value)}
+            className="font-select"
             style={{ padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid var(--color-border)', fontSize: '0.875rem', outline: 'none' }}
           >
             <option value="'Courier New', Courier, monospace">Courier New</option>
@@ -413,7 +414,7 @@ export function WritingPage() {
 
         {/* Challenge Prompt Banner */}
         {session.challenge && (
-          <div style={{
+          <div className="writing-prompt-banner" style={{
             padding: showPrompt ? '2rem clamp(1rem, 4vw, 3rem)' : '0 clamp(1rem, 4vw, 3rem)',
             borderBottom: showPrompt ? '1px solid var(--color-border)' : 'none',
             backgroundColor: 'var(--color-bg-primary)',
@@ -489,7 +490,7 @@ export function WritingPage() {
       )}
 
       {/* Editor Main Area */}
-      <main style={{
+      <main className="writing-editor-area" style={{
         flex: 1,
         padding: '2rem 30px',
         display: 'flex',

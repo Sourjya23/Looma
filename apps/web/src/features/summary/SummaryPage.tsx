@@ -226,7 +226,7 @@ export function SummaryPage() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
-      <main className="section-container animate-fade-in-up" style={{ flex: 1, paddingTop: 'clamp(2rem, 4vw, 4rem)', paddingBottom: 'clamp(4rem, 8vw, 6rem)', width: '100%' }}>
+      <main className="section-container summary-container animate-fade-in-up" style={{ flex: 1, paddingTop: 'clamp(2rem, 4vw, 4rem)', paddingBottom: 'clamp(4rem, 8vw, 6rem)', width: '100%' }}>
         <p className="eyebrow" style={{ color: 'var(--color-text-primary)' }}>Writing History</p>
         
         <h1 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 400, letterSpacing: '-0.04em', marginBottom: '1rem', lineHeight: 1.1 }}>
@@ -239,7 +239,7 @@ export function SummaryPage() {
           <span style={{ fontWeight: 600 }}>Version {activeVersion}</span>
         </div>
 
-        <div style={{ display: 'flex', gap: '1rem', marginBottom: '3rem' }}>
+        <div className="summary-header-actions" style={{ display: 'flex', gap: '1rem', marginBottom: '3rem' }}>
           <button onClick={() => navigate('/dashboard')} className="btn-pill" style={{ backgroundColor: 'transparent', border: '1px solid var(--color-border)' }}>
             Back to Dashboard
           </button>
@@ -343,7 +343,7 @@ export function SummaryPage() {
         </div>
 
         {/* Stats Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '2rem', marginBottom: '4rem' }}>
+        <div className="summary-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '2rem', marginBottom: '4rem' }}>
           <div className="feature-card" style={{ padding: '2rem' }}>
             <div className="stat-label" style={{ marginBottom: '0.5rem' }}>Words Written</div>
             <div className="stat-number">{wordCount}</div>

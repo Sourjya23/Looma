@@ -127,9 +127,10 @@ export function ProfilePage() {
   return (
     <div style={{ padding: 'clamp(2rem, 4vw, 4rem)', maxWidth: '1000px', margin: '0 auto', width: '100%' }} className="animate-fade-in-up">
       
-      <div style={{ display: 'flex', alignItems: 'center', gap: '2rem', marginBottom: '3rem' }}>
+      <div className="profile-header" style={{ display: 'flex', alignItems: 'center', gap: '2rem', marginBottom: '3rem' }}>
         <div 
           onClick={() => fileInputRef.current?.click()}
+          className="profile-avatar"
           style={{ 
             width: '100px', 
             height: '100px', 
@@ -186,7 +187,7 @@ export function ProfilePage() {
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', marginBottom: '3rem' }}>
+      <div className="profile-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem', marginBottom: '3rem' }}>
         
         {/* Strengths */}
         <div style={{ padding: '2rem', backgroundColor: '#fff', borderRadius: '1rem', border: '1px solid var(--color-border)', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
@@ -232,12 +233,12 @@ export function ProfilePage() {
       </div>
 
       {/* Recent Trends */}
-      <div style={{ padding: '2rem', backgroundColor: '#fff', borderRadius: '1rem', border: '1px solid var(--color-border)', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+      <div className="profile-trends" style={{ padding: '2rem', backgroundColor: '#fff', borderRadius: '1rem', border: '1px solid var(--color-border)', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
         <h2 style={{ fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-text-secondary)', marginBottom: '1.5rem' }}>
           Recent Trends
         </h2>
         {profile.trends?.length > 0 ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
+          <div className="profile-trends-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
             {profile.trends.map((t: any, i: number) => (
               <div key={i} style={{ padding: '1rem', backgroundColor: 'var(--color-bg-secondary)', borderRadius: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ textTransform: 'capitalize', fontWeight: 500 }}>{t.subCategory.replace(/_/g, ' ')}</span>

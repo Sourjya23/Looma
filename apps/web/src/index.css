@@ -550,38 +550,284 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ── Responsive adjustments ── */
+
+/* === TABLET & BELOW (≤1024px) === */
+@media (max-width: 1024px) {
+  /* Dashboard chart grids shouldn't overflow */
+  .dashboard-chart-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* === TABLET & PHONE (≤768px) === */
 @media (max-width: 768px) {
   .section-container {
     padding-left: 1rem;
     padding-right: 1rem;
   }
   
-  nav {
-    padding: 0 1rem !important;
-    justify-content: space-between !important;
-    gap: 0.5rem;
-  }
-  
-  nav > div {
-    gap: 1rem !important;
-    justify-content: flex-end;
-  }
-  
-  header {
-    padding: 1rem !important;
-    flex-direction: column;
-    align-items: flex-start !important;
-    gap: 1rem;
-  }
-  
-  header > div {
-    width: 100%;
-    justify-content: space-between;
-  }
-  
   .process-step {
     grid-template-columns: 1fr;
     gap: 1rem;
+  }
+
+  /* ── App Navbar ── */
+  .app-navbar {
+    height: 56px !important;
+    padding: 0 0.75rem !important;
+  }
+  .app-navbar .nav-text-link {
+    display: none !important;
+  }
+  .app-navbar .nav-username {
+    display: none !important;
+  }
+  .app-navbar .nav-avatar {
+    width: 28px !important;
+    height: 28px !important;
+  }
+  .app-navbar .nav-logout-btn {
+    padding: 0.35rem 0.75rem !important;
+    font-size: 0.75rem !important;
+  }
+  .app-navbar .nav-right {
+    gap: 0.75rem !important;
+  }
+
+  /* ── Report Page Header ── */
+  .report-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    padding: 1rem !important;
+    gap: 1rem !important;
+  }
+  .report-header-actions {
+    width: 100%;
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
+  }
+  .report-header-actions .btn-pill {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.75rem !important;
+    justify-content: center;
+  }
+  .report-body {
+    padding: 1.25rem !important;
+  }
+  .report-body h1 {
+    font-size: 1.5rem !important;
+  }
+  .report-main {
+    padding: 1rem !important;
+  }
+  /* Score grids in report */
+  .report-body .score-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 0.5rem !important;
+  }
+
+  /* ── Writing Page ── */
+  .writing-header {
+    padding: 0.75rem 1rem !important;
+    gap: 0.5rem !important;
+  }
+  .writing-header-controls {
+    gap: 0.5rem !important;
+  }
+  .writing-header .font-select {
+    display: none !important;
+  }
+  .writing-header .btn-pill {
+    padding: 0.4rem 0.75rem !important;
+    font-size: 0.8rem !important;
+  }
+  .writing-title-input {
+    font-size: 1.5rem !important;
+  }
+  .writing-editor-area {
+    padding: 1rem 0.5rem !important;
+  }
+  .writing-prompt-banner {
+    padding: 1rem !important;
+  }
+
+  /* ── Dashboard ── */
+  .dashboard-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 1rem !important;
+  }
+  .dashboard-stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .dashboard-perf-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 1rem !important;
+  }
+  .dashboard-perf-trends {
+    gap: 1rem !important;
+  }
+  .dashboard-recent-item {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 1rem !important;
+  }
+  .dashboard-recent-scores {
+    width: 100%;
+    justify-content: flex-start !important;
+  }
+  .dashboard-strengths-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── Summary Page ── */
+  .summary-header-actions {
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
+  }
+  .summary-stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── Profile Page ── */
+  .profile-header {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center;
+    gap: 1rem !important;
+  }
+  .profile-header h1 {
+    font-size: 1.75rem !important;
+  }
+  .profile-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .profile-trends-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── Leaderboard ── */
+  .leaderboard-rank-row {
+    padding: 0.75rem !important;
+  }
+  .leaderboard-rank-row .rank-badge {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 0.875rem !important;
+  }
+  .leaderboard-rank-row .rank-avatar {
+    width: 32px !important;
+    height: 32px !important;
+  }
+  .leaderboard-rank-info {
+    gap: 0.5rem !important;
+  }
+  .leaderboard-my-card {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    padding: 1.25rem !important;
+  }
+  .leaderboard-my-stats {
+    width: 100%;
+    justify-content: space-between !important;
+  }
+
+  /* ── Login Page ── */
+  .login-signup-link {
+    position: static !important;
+    text-align: center;
+    padding: 1rem;
+  }
+  .login-form-container {
+    padding: 2rem 1.5rem !important;
+  }
+}
+
+/* === PHONE ONLY (≤480px) === */
+@media (max-width: 480px) {
+  .section-container {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  /* App Navbar even more compact */
+  .app-navbar {
+    height: 48px !important;
+    padding: 0 0.5rem !important;
+  }
+  .app-navbar .nav-logout-btn {
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.7rem !important;
+  }
+
+  /* Report: stack all buttons vertically */
+  .report-header-actions {
+    flex-direction: column !important;
+  }
+  .report-header-actions .btn-pill {
+    width: 100% !important;
+  }
+  .report-body {
+    padding: 0.75rem !important;
+  }
+  .report-body h1 {
+    font-size: 1.25rem !important;
+  }
+  .report-body .score-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Writing: ultra compact */
+  .writing-header {
+    padding: 0.5rem !important;
+  }
+  .writing-title-input {
+    font-size: 1.25rem !important;
+  }
+
+  /* Dashboard: single column stats */
+  .dashboard-stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Summary: reduce padding */
+  .summary-container {
+    padding: 1rem !important;
+  }
+
+  /* Profile */
+  .profile-header h1 {
+    font-size: 1.5rem !important;
+  }
+  .profile-avatar {
+    width: 72px !important;
+    height: 72px !important;
+  }
+
+  /* Leaderboard */
+  .leaderboard-rank-row {
+    padding: 0.5rem 0.75rem !important;
+    gap: 0.5rem !important;
+  }
+  .leaderboard-header h1 {
+    font-size: 1.75rem !important;
+  }
+  .leaderboard-my-card {
+    padding: 1rem !important;
+  }
+  .leaderboard-my-card .rank-number {
+    font-size: 2rem !important;
+  }
+
+  /* Login */
+  .login-form-container {
+    padding: 1.5rem 1rem !important;
+  }
+  .login-form-container h1 {
+    font-size: 1.75rem !important;
   }
 }
 

@@ -60,11 +60,11 @@ export function LoginPage() {
 
       {/* Right Side: Auth Form */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: '#fff', position: 'relative', overflowY: 'auto' }}>
-        <div style={{ position: 'absolute', top: '2rem', right: '3rem', fontSize: '0.875rem', color: 'var(--color-text-secondary)' }}>
+        <div className="login-signup-link" style={{ position: 'absolute', top: '2rem', right: '3rem', fontSize: '0.875rem', color: 'var(--color-text-secondary)' }}>
           Don't have an account? <Link to="/register" style={{ fontWeight: 600, color: 'var(--color-text-primary)', textDecoration: 'none' }}>Sign up</Link>
         </div>
 
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 2rem' }}>
+        <div className="login-form-container" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 2rem' }}>
           <div style={{ width: '100%', maxWidth: '380px', margin: '0 auto' }}>
             <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none', color: 'var(--color-text-primary)', marginBottom: '2rem' }}>
               <img src="/logo-icon.png" alt="Looma Logo" style={{ height: '32px', width: 'auto' }} />
