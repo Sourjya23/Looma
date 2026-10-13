@@ -3,6 +3,8 @@ import { useAuth } from '../auth/AuthContext';
 import { ChallengePreview } from '../challenge/ChallengePreview';
 import { API_BASE } from '@/lib/api';
 
+import toast from 'react-hot-toast';
+
 export function NewChallengePage() {
   const { token } = useAuth();
   const navigate = useNavigate();
@@ -30,17 +32,17 @@ export function NewChallengePage() {
       if (data.success) {
         navigate(`/writing/${data.data.id}`);
       } else {
-        alert('Failed to start session');
+        toast.error(data.message || 'Failed to start session');
       }
     } catch (e) {
-      alert('Error starting session');
+      toast.error('Error starting session');
     }
   };
 
   if (!token) return null;
 
   return (
-    <div style={{ padding: 'clamp(2rem, 5vw, 4rem)', width: '100%', height: '100%', overflowY: 'auto' }}>
+    <div className="w-full h-full overflow-y-auto px-4 md:px-8 py-8">
       <ChallengePreview token={token} onStart={handleStartSession} />
     </div>
   );

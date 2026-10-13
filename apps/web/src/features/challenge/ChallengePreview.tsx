@@ -1,184 +1,320 @@
 import { useState, useEffect } from 'react';
-import { api } from '@/lib/api';
-// Note: update shared-types later if needed, or use string
+import { useAuth } from '../auth/AuthContext';
+import { Spinner } from '../../components/ui/Spinner';
+import { API_BASE } from '@/lib/api';
+import toast from 'react-hot-toast';
 
 interface ChallengePreviewProps {
-  token: string; // kept for backwards compatibility if passed by parent, though unused here
+  token?: string;
   onStart: (challengePayload: any, config: any) => void;
   initialDifficulty?: string;
 }
 
-export function ChallengePreview({ onStart, initialDifficulty = 'intermediate' }: ChallengePreviewProps) {
+export function ChallengePreview({ token: propToken, onStart, initialDifficulty = 'intermediate' }: ChallengePreviewProps) {
+  const { token: authToken } = useAuth();
+  const token = propToken || authToken;
+
   const [challenge, setChallenge] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [isRegenerating, setIsRegenerating] = useState(false);
   const [error, setError] = useState('');
   
   const [configTime, setConfigTime] = useState<number>(30 * 60);
   const [configWordTarget, setConfigWordTarget] = useState<number>(500);
   const [configDifficulty, setConfigDifficulty] = useState<string>(initialDifficulty);
 
-  const generateChallenge = async (diff: string, time: number, words: number) => {
-    setLoading(true);
+  const generateChallenge = async (diff: string, time: number, words: number, isRegen = false) => {
+    if (isRegen) {
+      setIsRegenerating(true);
+    } else {
+      setInitialLoading(true);
+    }
     setError('');
+
     try {
-      const data = await api.post<any>('/challenges/generate', { 
-        difficulty: diff, 
-        timeLimit: time / 60, 
-        wordTarget: words, 
-        mode: 'normal' 
+      const res = await fetch(`${API_BASE}/challenges/generate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        credentials: 'include',
+        body: JSON.stringify({ 
+          difficulty: diff, 
+          timeLimit: Math.round(time / 60), 
+          wordTarget: words, 
+          mode: 'normal' 
+        })
       });
-      if (data.success) {
+
+      const data = await res.json();
+
+      if (data.success && data.data) {
         setChallenge(data.data);
+        if (isRegen) {
+          toast.success('Fresh writing prompt generated!');
+        }
       } else {
-        setError(data.message || 'Failed to generate challenge.');
+        const msg = data.message || 'Failed to generate challenge scenario.';
+        setError(msg);
+        toast.error(msg);
       }
     } catch (e: any) {
-      setError(e.message || 'Error connecting to the server.');
+      const msg = e.message || 'Error connecting to the server.';
+      setError(msg);
+      toast.error(msg);
     } finally {
-      setLoading(false);
+      setInitialLoading(false);
+      setIsRegenerating(false);
     }
   };
 
   // Initial load
   useEffect(() => {
-    generateChallenge(configDifficulty, configTime, configWordTarget);
+    generateChallenge(configDifficulty, configTime, configWordTarget, false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleRegenerate = () => {
-    const confirmed = window.confirm('Are you sure you want to regenerate with the selected settings?');
-    if (confirmed) {
-      generateChallenge(configDifficulty, configTime, configWordTarget);
-    }
+    generateChallenge(configDifficulty, configTime, configWordTarget, true);
   };
 
   const handleDifficultyChange = (diff: string) => {
     setConfigDifficulty(diff);
-    // Removed auto-generation
   };
 
   const handleTimeChange = (mins: number) => {
-    const newTime = mins * 60;
-    setConfigTime(newTime);
-    // Removed auto-generation
+    setConfigTime(mins * 60);
   };
 
   const handleWordChange = (words: number) => {
     setConfigWordTarget(words);
-    // Removed auto-generation
   };
 
-  return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', width: '100%' }}>
-      <p className="eyebrow" style={{ color: 'var(--color-text-primary)' }}>New Writing Session</p>
-      
-      {loading ? (
-        <div style={{ padding: '4rem 0', textAlign: 'center' }}>
-          <div className="spinner" style={{ margin: '0 auto 1.5rem auto' }}></div>
-          <p style={{ color: 'var(--color-text-muted)' }}>Drafting a new scenario...</p>
+  if (initialLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[55vh] gap-3 text-center animate-fade-in">
+        <Spinner size={24} color="#09090b" />
+        <p className="text-xs font-medium text-zinc-500 tracking-tight">Drafting a fresh writing scenario...</p>
+      </div>
+    );
+  }
+
+  if (error && !challenge) {
+    return (
+      <div className="max-w-xl mx-auto p-6 rounded-2xl bg-red-50 border border-red-200 text-center space-y-3">
+        <div className="w-10 h-10 mx-auto rounded-xl bg-red-100 flex items-center justify-center text-red-600 font-bold">
+          !
         </div>
-      ) : error ? (
-        <div style={{ padding: '1rem', background: '#fee2e2', color: '#b91c1c', borderRadius: 'var(--radius-md)' }}>{error}</div>
-      ) : challenge ? (
-        <div className="animate-fade-in-up">
-          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
+        <h3 className="text-sm font-semibold text-red-900">Scenario Generation Error</h3>
+        <p className="text-xs text-red-600 leading-relaxed">{error}</p>
+        <button
+          onClick={() => generateChallenge(configDifficulty, configTime, configWordTarget, false)}
+          className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-semibold transition-all shadow-xs"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-3xl mx-auto space-y-8 animate-fade-in pb-12">
+      {/* ── EYEBROW & TITLE ── */}
+      <div className="space-y-1">
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Writer Studio</span>
+          <span className="w-1 h-1 rounded-full bg-zinc-300" />
+          <span className="text-[11px] font-medium text-zinc-500">Draft Sprint Template</span>
+        </div>
+        <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-zinc-900">
+          Configure Your Writing Scenario
+        </h1>
+      </div>
+
+      {/* ── CHALLENGE PROMPT CARD ── */}
+      {challenge && (
+        <div className={`p-6 md:p-8 rounded-3xl bg-white border border-zinc-200/80 shadow-2xs space-y-6 transition-all duration-300 ${
+          isRegenerating ? 'opacity-50 pointer-events-none scale-[0.99]' : 'opacity-100'
+        }`}>
+          {/* Genre & Mode Badges */}
+          <div className="flex flex-wrap items-center gap-2">
             {challenge.genre && challenge.genre.trim() !== '' && (
-              <span style={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-primary)', backgroundColor: 'var(--color-primary-light)', padding: '0.25rem 0.75rem', borderRadius: '1rem' }}>
+              <span className="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-zinc-100 text-zinc-800 border border-zinc-200/60">
                 {challenge.genre}
               </span>
             )}
             {challenge.mode === 'adaptive' && (
-              <span style={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#ffffff', backgroundColor: '#000000', padding: '0.25rem 0.75rem', borderRadius: '1rem' }}>
-                Targeted Practice
+              <span className="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200/60 flex items-center gap-1.5">
+                <span>✦</span>
+                <span>Targeted Habit Practice</span>
               </span>
             )}
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium text-zinc-500 bg-zinc-50 border border-zinc-200/40 capitalize">
+              {configDifficulty} difficulty
+            </span>
           </div>
 
-          <h1 style={{ fontSize: 'clamp(1.5rem, 3vw, 2.5rem)', fontWeight: 400, letterSpacing: '-0.03em', marginBottom: '2rem', lineHeight: 1.2, color: 'var(--color-text-primary)' }}>
-            {challenge.prompt}
-          </h1>
+          {/* Main Story Prompt */}
+          <div className="space-y-2">
+            <h2 className="text-xl md:text-2xl font-medium tracking-tight text-zinc-900 leading-relaxed font-serif">
+              &ldquo;{challenge.prompt}&rdquo;
+            </h2>
+          </div>
 
+          {/* Adaptive Reasoning if Present */}
           {challenge.mode === 'adaptive' && challenge.reasoning && (
-            <div style={{ backgroundColor: 'var(--color-bg-alt)', padding: '1rem', borderRadius: 'var(--radius-md)', marginBottom: '1.5rem', border: '1px solid var(--color-border)', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-              <span style={{ fontSize: '1.5rem' }}>💡</span>
-              <div>
-                <strong style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.25rem' }}>Why this challenge?</strong>
-                <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-primary)' }}>{challenge.reasoning}</p>
+            <div className="p-4 rounded-2xl bg-indigo-50/60 border border-indigo-100 flex items-start gap-3">
+              <span className="text-indigo-600 text-base mt-0.5">💡</span>
+              <div className="space-y-0.5">
+                <strong className="block text-xs font-semibold text-indigo-950">Why this challenge?</strong>
+                <p className="text-xs text-indigo-900/80 leading-relaxed">{challenge.reasoning}</p>
               </div>
             </div>
           )}
 
-          <div style={{ backgroundColor: 'var(--color-bg-alt)', padding: '1.5rem', borderRadius: 'var(--radius-md)', marginBottom: '3rem', border: '1px solid var(--color-border)' }}>
-            <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.5rem' }}>Constraint:</h3>
-            <p style={{ color: 'var(--color-text-secondary)', margin: 0 }}>{challenge.constraint}</p>
-          </div>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', marginBottom: '3rem', padding: '1rem 0' }}>
-            
-            {/* Time Configuration */}
-            <div>
-              <label style={{ display: 'block', fontSize: '0.875rem', color: 'var(--color-text-secondary)', marginBottom: '0.75rem', fontWeight: 500 }}>Time Target</label>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                {[15, 30, 45, 60].map(mins => (
-                  <button 
+          {/* Creative Constraint Box */}
+          {challenge.constraint && (
+            <div className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200/70 space-y-1">
+              <div className="flex items-center gap-2 text-zinc-700">
+                <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Constraint</span>
+              </div>
+              <p className="text-xs text-zinc-700 font-medium leading-relaxed">
+                {challenge.constraint}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── SPRINT CONFIGURATION SECTION ── */}
+      <div className="p-6 md:p-8 rounded-3xl bg-white border border-zinc-200/80 shadow-2xs space-y-6">
+        <h3 className="text-sm font-semibold text-zinc-900 tracking-tight pb-3 border-b border-zinc-100">
+          Sprint Parameters & Target Settings
+        </h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Time Target */}
+          <div className="space-y-2.5">
+            <label className="block text-xs font-semibold text-zinc-700">
+              Time Target
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {[15, 30, 45, 60].map(mins => {
+                const isSelected = configTime === mins * 60;
+                return (
+                  <button
                     key={mins}
+                    type="button"
                     onClick={() => handleTimeChange(mins)}
-                    className={configTime === mins * 60 ? "btn-pill btn-pill-dark" : "btn-pill btn-pill-outline"}
-                    style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}
+                    className={`py-2 px-3 rounded-xl text-xs font-medium transition-all ${
+                      isSelected
+                        ? 'bg-zinc-950 text-white shadow-xs font-semibold'
+                        : 'bg-zinc-50 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 border border-zinc-200/60'
+                    }`}
                   >
                     {mins} min
                   </button>
-                ))}
-              </div>
+                );
+              })}
             </div>
-
-            {/* Word Configuration */}
-            <div>
-              <label style={{ display: 'block', fontSize: '0.875rem', color: 'var(--color-text-secondary)', marginBottom: '0.75rem', fontWeight: 500 }}>Word Target</label>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                {[250, 500, 1000].map(words => (
-                  <button 
-                    key={words}
-                    onClick={() => handleWordChange(words)}
-                    className={configWordTarget === words ? "btn-pill btn-pill-dark" : "btn-pill btn-pill-outline"}
-                    style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}
-                  >
-                    {words}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Difficulty Configuration */}
-            <div>
-              <label style={{ display: 'block', fontSize: '0.875rem', color: 'var(--color-text-secondary)', marginBottom: '0.75rem', fontWeight: 500 }}>Difficulty (Changes Prompt)</label>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                {['beginner', 'intermediate', 'advanced'].map(diff => (
-                  <button 
-                    key={diff}
-                    onClick={() => handleDifficultyChange(diff)}
-                    className={configDifficulty === diff ? "btn-pill btn-pill-dark" : "btn-pill btn-pill-outline"}
-                    style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', textTransform: 'capitalize' }}
-                  >
-                    {diff}
-                  </button>
-                ))}
-              </div>
-            </div>
-
           </div>
 
-          <div style={{ display: 'flex', gap: '1rem' }}>
-            <button onClick={handleRegenerate} className="btn-pill btn-pill-outline" style={{ flex: 1, justifyContent: 'center', padding: '1rem', fontSize: '1.125rem' }}>
-              Confirm & Regenerate
-            </button>
-            <button onClick={() => onStart(challenge, { time: configTime, words: configWordTarget, diff: configDifficulty })} className="btn-pill btn-pill-dark" style={{ flex: 2, justifyContent: 'center', padding: '1rem', fontSize: '1.125rem' }}>
-              Start Writing
-            </button>
+          {/* Word Target */}
+          <div className="space-y-2.5">
+            <label className="block text-xs font-semibold text-zinc-700">
+              Word Target
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {[250, 500, 1000].map(words => {
+                const isSelected = configWordTarget === words;
+                return (
+                  <button
+                    key={words}
+                    type="button"
+                    onClick={() => handleWordChange(words)}
+                    className={`py-2 px-2.5 rounded-xl text-xs font-medium transition-all ${
+                      isSelected
+                        ? 'bg-zinc-950 text-white shadow-xs font-semibold'
+                        : 'bg-zinc-50 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 border border-zinc-200/60'
+                    }`}
+                  >
+                    {words >= 1000 ? '1k' : words} w
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Difficulty Target */}
+          <div className="space-y-2.5">
+            <label className="block text-xs font-semibold text-zinc-700">
+              Difficulty
+            </label>
+            <div className="grid grid-cols-3 gap-1.5">
+              {['beginner', 'intermediate', 'advanced'].map(diff => {
+                const isSelected = configDifficulty === diff;
+                return (
+                  <button
+                    key={diff}
+                    type="button"
+                    onClick={() => handleDifficultyChange(diff)}
+                    className={`py-2 px-1 rounded-xl text-[11px] font-medium capitalize transition-all truncate ${
+                      isSelected
+                        ? 'bg-zinc-950 text-white shadow-xs font-semibold'
+                        : 'bg-zinc-50 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 border border-zinc-200/60'
+                    }`}
+                  >
+                    {diff === 'intermediate' ? 'Interm.' : diff}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
-      ) : null}
+
+        {/* ── ACTION BUTTONS ── */}
+        <div className="pt-4 border-t border-zinc-100 flex flex-col sm:flex-row items-center gap-3">
+          {/* Confirm & Regenerate Button */}
+          <button
+            type="button"
+            disabled={isRegenerating}
+            onClick={handleRegenerate}
+            className="w-full sm:flex-1 py-3 px-4 rounded-xl border border-zinc-200/80 bg-white hover:bg-zinc-50 active:scale-[0.99] text-zinc-800 text-xs font-semibold transition-all shadow-2xs flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {isRegenerating ? (
+              <>
+                <Spinner size={14} color="#09090b" />
+                <span>Regenerating...</span>
+              </>
+            ) : (
+              <>
+                <svg className="w-3.5 h-3.5 text-zinc-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 2v6h-6" />
+                  <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
+                  <path d="M3 22v-6h6" />
+                  <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
+                </svg>
+                <span>Confirm & Regenerate</span>
+              </>
+            )}
+          </button>
+
+          {/* Start Writing Sprint Button */}
+          <button
+            type="button"
+            disabled={isRegenerating || !challenge}
+            onClick={() => onStart(challenge, { time: configTime, words: configWordTarget, diff: configDifficulty })}
+            className="w-full sm:flex-1 py-3 px-5 rounded-xl bg-zinc-950 hover:bg-zinc-850 active:scale-[0.99] text-white text-xs font-semibold transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            <span>Start Writing Sprint</span>
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
-
