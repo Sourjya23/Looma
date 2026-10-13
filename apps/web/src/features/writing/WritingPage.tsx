@@ -161,7 +161,11 @@ export function WritingPage() {
             });
             const startData = await startRes.json();
             if (startData.success) {
-              sessionData = startData.data;
+              sessionData = {
+                ...sessionData,
+                ...startData.data,
+                challenge: startData.data.challenge || sessionData.challenge,
+              };
             }
           }
 
@@ -413,18 +417,15 @@ export function WritingPage() {
         )}
 
         {/* Challenge Prompt Banner */}
-        {session.challenge && (
+        {session.challenge && showPrompt && (
           <div className="writing-prompt-banner" style={{
-            padding: showPrompt ? '2rem clamp(1rem, 4vw, 3rem)' : '0 clamp(1rem, 4vw, 3rem)',
-            borderBottom: showPrompt ? '1px solid var(--color-border)' : 'none',
+            padding: '1.75rem clamp(1rem, 4vw, 3rem)',
+            borderBottom: '1px solid var(--color-border)',
             backgroundColor: 'var(--color-bg-primary)',
-            maxHeight: showPrompt ? '60vh' : '0',
-            opacity: showPrompt ? 1 : 0,
+            maxHeight: '60vh',
             overflowY: 'auto',
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            pointerEvents: showPrompt ? 'auto' : 'none',
           }}>
-            <div style={{ maxWidth: '900px', margin: '0 auto', transform: showPrompt ? 'translateY(0)' : 'translateY(-20px)', transition: 'transform 0.3s ease' }}>
+            <div style={{ maxWidth: '900px', margin: '0 auto' }}>
               <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
                 {session.challenge.genre && session.challenge.genre.trim() !== '' && (
                   <span style={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-primary)', backgroundColor: 'var(--color-primary-light)', padding: '0.25rem 0.75rem', borderRadius: '1rem' }}>

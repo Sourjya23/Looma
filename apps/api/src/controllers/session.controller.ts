@@ -48,6 +48,9 @@ export const createSession = async (req: Request, res: Response) => {
         difficulty,
         status: 'idle',
       },
+      include: {
+        challenge: true,
+      },
     });
 
     res.status(201).json({
@@ -175,25 +178,12 @@ export const submitSession = async (req: Request, res: Response) => {
       
       // Trigger AI Analysis Pipeline if word count is sufficient
       if (wordCount >= 50) {
-        const { aiQueue } = await import('../services/queue.service.js');
-        await aiQueue.add('english-analysis', {
-          submissionId: newSubmission.id,
+        const { dispatchAIAnalysis } = await import('../services/queue.service.js');
+        dispatchAIAnalysis(
+          newSubmission.id,
           content,
-          challengePrompt: result.challenge?.prompt || '',
-          role: 'english'
-        });
-        await aiQueue.add('story-analysis', {
-          submissionId: newSubmission.id,
-          content,
-          challengePrompt: result.challenge?.prompt || '',
-          role: 'story'
-        });
-        await aiQueue.add('director-analysis', {
-          submissionId: newSubmission.id,
-          content,
-          challengePrompt: result.challenge?.prompt || '',
-          role: 'director'
-        });
+          result.challenge?.prompt || ''
+        ).catch(console.error);
       }
     }
     await GamificationService.evaluateStreak(userId);
@@ -241,7 +231,15 @@ export const startSession = async (req: Request, res: Response) => {
     const userId = req.userId!;
     const sessionId = req.params.id as string;
 
-    const session = await prisma.writingSession.findUnique({ where: { id: sessionId } });
+    const session = await prisma.writingSession.findUnique({
+      where: { id: sessionId },
+      include: {
+        challenge: true,
+        submissions: {
+          orderBy: { version: 'asc' }
+        }
+      }
+    });
     if (!session || session.userId !== userId) {
       res.status(404).json({ success: false, message: 'Session not found' });
       return;
@@ -278,7 +276,10 @@ export const pauseSession = async (req: Request, res: Response) => {
     const userId = req.userId!;
     const sessionId = req.params.id as string;
 
-    const session = await prisma.writingSession.findUnique({ where: { id: sessionId } });
+    const session = await prisma.writingSession.findUnique({
+      where: { id: sessionId },
+      include: { challenge: true }
+    });
     if (!session || session.userId !== userId) {
       res.status(404).json({ success: false, message: 'Session not found' });
       return;
@@ -297,7 +298,8 @@ export const pauseSession = async (req: Request, res: Response) => {
       });
       return tx.writingSession.update({
         where: { id: sessionId },
-        data: { status: 'paused' }
+        data: { status: 'paused' },
+        include: { challenge: true }
       });
     });
 
@@ -315,7 +317,10 @@ export const resumeSession = async (req: Request, res: Response) => {
 
     const session = await prisma.writingSession.findUnique({ 
       where: { id: sessionId },
-      include: { pauseEvents: { orderBy: { pausedAt: 'desc' }, take: 1 } }
+      include: {
+        challenge: true,
+        pauseEvents: { orderBy: { pausedAt: 'desc' }, take: 1 }
+      }
     });
     
     if (!session || session.userId !== userId) {
@@ -339,7 +344,8 @@ export const resumeSession = async (req: Request, res: Response) => {
       }
       return tx.writingSession.update({
         where: { id: sessionId },
-        data: { status: 'running' } // Could also be overtime, but we let frontend calculate it based on time
+        data: { status: 'running' },
+        include: { challenge: true }
       });
     });
 

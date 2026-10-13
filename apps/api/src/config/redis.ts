@@ -4,23 +4,31 @@ import { env } from './env.js';
 let redis: Redis | null = null;
 
 try {
-  redis = new Redis(env.REDIS_URL || 'redis://localhost:6379', {
-    maxRetriesPerRequest: 3,
-    enableReadyCheck: true,
+  const client = new Redis(env.REDIS_URL || 'redis://127.0.0.1:6379', {
+    maxRetriesPerRequest: 1,
+    enableOfflineQueue: false,
+    lazyConnect: true,
+    connectTimeout: 1500,
     retryStrategy(times) {
-      if (times > 3) {
-        console.warn('Redis connection failed after 3 retries, falling back to degraded mode.');
-        return null;
-      }
-      return Math.min(times * 50, 2000);
+      if (times > 2) return null;
+      return 1000;
     }
   });
 
-  redis.on('error', (err) => {
-    console.error('Redis Client Error', err);
+  client.on('error', () => {
+    // Suppress console spam if Redis is offline in local dev
+  });
+
+  client.connect().then(() => {
+    console.log('✅ Redis connected successfully.');
+    redis = client;
+  }).catch(() => {
+    console.warn('⚠️ [Redis] Offline, falling back to in-memory mode.');
+    redis = null;
   });
 } catch (e) {
-  console.error('Failed to initialize Redis client', e);
+  console.warn('[Redis] Client initialization skipped.');
+  redis = null;
 }
 
 export { redis };

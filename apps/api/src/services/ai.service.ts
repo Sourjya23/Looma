@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { EnglishAnalysisSchema, StoryAnalysisSchema, DirectorAnalysisSchema, postProcessEnglish, postProcessStory, postProcessDirector } from '../schemas/analysis.schema.js';
 import { CoverDesignSchema, CoverDesignType } from '../schemas/cover.schema.js';
 import { generateEnglishTeacherPrompt, generateStoryEditorPrompt, generateDirectorPrompt, generateProfileInterpretationPrompt, generateCoverDesignPrompt } from './ai.prompts.js';
