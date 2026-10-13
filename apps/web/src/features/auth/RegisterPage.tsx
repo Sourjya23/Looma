@@ -90,9 +90,18 @@ export function RegisterPage() {
             </Link>
             <h1 style={{ fontSize: '2.5rem', fontWeight: 600, letterSpacing: '-0.04em', marginBottom: '2.5rem', color: 'var(--color-text-primary)' }}>Sign up</h1>
             
-            {error && <div style={{ padding: '1rem', background: '#fee2e2', color: '#b91c1c', borderRadius: '0.5rem', marginBottom: '1.5rem', fontSize: '0.875rem' }}>{error}</div>}
+            {error && (
+              <div className="flex items-center gap-2.5 p-3.5 mb-5 rounded-xl text-xs font-medium bg-red-500/10 border border-red-500/20 text-red-600 animate-fade-in">
+                <svg className="w-4 h-4 shrink-0 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                <span>{error}</span>
+              </div>
+            )}
 
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
               <div>
                 <input 
                   id="username"
@@ -101,9 +110,7 @@ export function RegisterPage() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   required
-                  style={{ width: '100%', padding: '1rem 1.25rem', borderRadius: '0.75rem', border: '1px solid var(--color-border)', background: 'var(--color-bg-input)', outline: 'none', transition: 'border-color 0.2s', fontSize: '0.95rem' }}
-                  onFocus={(e) => e.target.style.borderColor = 'var(--color-text-primary)'}
-                  onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'}
+                  className="w-full px-4 py-3.5 rounded-xl text-sm border border-zinc-200 bg-zinc-50/70 text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-900 focus:bg-white focus:ring-4 focus:ring-zinc-900/5 transition-all"
                 />
               </div>
               <div>
@@ -114,9 +121,7 @@ export function RegisterPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  style={{ width: '100%', padding: '1rem 1.25rem', borderRadius: '0.75rem', border: '1px solid var(--color-border)', background: 'var(--color-bg-input)', outline: 'none', transition: 'border-color 0.2s', fontSize: '0.95rem' }}
-                  onFocus={(e) => e.target.style.borderColor = 'var(--color-text-primary)'}
-                  onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'}
+                  className="w-full px-4 py-3.5 rounded-xl text-sm border border-zinc-200 bg-zinc-50/70 text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-900 focus:bg-white focus:ring-4 focus:ring-zinc-900/5 transition-all"
                 />
               </div>
               <div>
@@ -127,39 +132,28 @@ export function RegisterPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  style={{ width: '100%', padding: '1rem 1.25rem', borderRadius: '0.75rem', border: '1px solid var(--color-border)', background: 'var(--color-bg-input)', outline: 'none', transition: 'border-color 0.2s', fontSize: '0.95rem' }}
-                  onFocus={(e) => e.target.style.borderColor = 'var(--color-text-primary)'}
-                  onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'}
+                  className="w-full px-4 py-3.5 rounded-xl text-sm border border-zinc-200 bg-zinc-50/70 text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-900 focus:bg-white focus:ring-4 focus:ring-zinc-900/5 transition-all"
                 />
               </div>
+
+              {/* Ultra-premium Linear / Vercel style submit button */}
               <button 
                 type="submit" 
                 disabled={loading}
-                style={{ 
-                  width: '100%', 
-                  padding: '1rem', 
-                  backgroundColor: loading ? '#2563eb' : '#1d4ed8', 
-                  color: '#fff', 
-                  border: 'none', 
-                  borderRadius: '0.75rem', 
-                  fontWeight: 600, 
-                  cursor: loading ? 'wait' : 'pointer', 
-                  marginTop: '0.5rem', 
-                  fontSize: '0.95rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.625rem',
-                  transition: 'all 0.2s ease',
-                  opacity: loading ? 0.95 : 1
-                }}
+                className={`relative overflow-hidden w-full py-3.5 px-4 rounded-xl font-medium text-sm transition-all duration-200 mt-2 flex items-center justify-center gap-2.5 shadow-xs ${
+                  loading 
+                    ? 'bg-zinc-900 text-zinc-200 cursor-wait after:absolute after:inset-0 after:-translate-x-full after:animate-[shimmer_2s_infinite] after:bg-gradient-to-r after:from-transparent after:via-white/10 after:to-transparent' 
+                    : 'bg-zinc-950 text-white hover:bg-zinc-850 active:scale-[0.99] cursor-pointer'
+                }`}
               >
                 {loading ? (
                   <>
-                    <Spinner size={18} color="#ffffff" />
-                    <span>{loadingStatus}</span>
+                    <Spinner size={16} color="#ffffff" />
+                    <span className="tracking-tight text-xs font-medium">{loadingStatus}</span>
                   </>
-                ) : 'Create Account'}
+                ) : (
+                  <span>Create account</span>
+                )}
               </button>
             </form>
           </div>

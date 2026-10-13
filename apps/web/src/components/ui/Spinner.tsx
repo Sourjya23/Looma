@@ -5,11 +5,10 @@ interface SpinnerProps {
 }
 
 /**
- * High-performance, continuous vector spinner.
- * Uses both CSS hardware-accelerated transforms and SVG SMIL animateTransform
- * to guarantee 100% continuous rotation that NEVER freezes or gets stuck.
+ * Ultra-refined hairline vector spinner (Linear / Vercel style).
+ * Continuous, smooth 60fps rotation that never freezes or looks chunky.
  */
-export function Spinner({ size = 18, color = 'currentColor', className = '' }: SpinnerProps) {
+export function Spinner({ size = 16, color = 'currentColor', className = '' }: SpinnerProps) {
   const pixelSize = typeof size === 'number' ? `${size}px` : size;
 
   return (
@@ -22,8 +21,8 @@ export function Spinner({ size = 18, color = 'currentColor', className = '' }: S
         verticalAlign: 'middle',
         flexShrink: 0,
         willChange: 'transform',
-        animation: 'spin 0.75s linear infinite',
-        WebkitAnimation: 'spin 0.75s linear infinite',
+        animation: 'spin 0.7s cubic-bezier(0.4, 0, 0.2, 1) infinite',
+        WebkitAnimation: 'spin 0.7s cubic-bezier(0.4, 0, 0.2, 1) infinite',
       }}
       viewBox="0 0 24 24"
       fill="none"
@@ -31,29 +30,31 @@ export function Spinner({ size = 18, color = 'currentColor', className = '' }: S
       aria-label="Loading"
       role="status"
     >
-      {/* Background track circle */}
+      {/* Background track circle - delicate hairline */}
       <circle
         cx="12"
         cy="12"
-        r="10"
+        r="9.5"
         stroke={color}
-        strokeWidth="3"
+        strokeWidth="2"
         strokeLinecap="round"
-        style={{ opacity: 0.25 }}
+        style={{ opacity: 0.18 }}
       />
-      {/* Active spinning arc */}
+      {/* Active spinning arc - sleek tapered gradient stroke */}
       <path
-        fill={color}
+        d="M12 2.5C6.75329 2.5 2.5 6.75329 2.5 12C2.5 14.3647 3.36444 16.5273 4.8 18.2"
+        stroke={color}
+        strokeWidth="2"
+        strokeLinecap="round"
         style={{ opacity: 0.95 }}
-        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
       />
-      {/* Compositor-level native fallback animation to guarantee it never freezes */}
+      {/* Compositor-level SMIL animation fallback */}
       <animateTransform
         attributeName="transform"
         type="rotate"
         from="0 12 12"
         to="360 12 12"
-        dur="0.75s"
+        dur="0.7s"
         repeatCount="indefinite"
       />
     </svg>

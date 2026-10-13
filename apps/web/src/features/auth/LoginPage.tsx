@@ -97,10 +97,19 @@ export function LoginPage() {
             </Link>
             <h1 style={{ fontSize: '2.5rem', fontWeight: 600, letterSpacing: '-0.04em', marginBottom: '2.5rem', color: 'var(--color-text-primary)' }}>Login</h1>
             
-            {error && <div style={{ padding: '1rem', background: '#fee2e2', color: '#b91c1c', borderRadius: '0.5rem', marginBottom: '1.5rem', fontSize: '0.875rem' }}>{error}</div>}
+            {error && (
+              <div className="flex items-center gap-2.5 p-3.5 mb-5 rounded-xl text-xs font-medium bg-red-500/10 border border-red-500/20 text-red-600 animate-fade-in">
+                <svg className="w-4 h-4 shrink-0 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                <span>{error}</span>
+              </div>
+            )}
 
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-              <div style={{ position: 'relative' }}>
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+              <div className="relative">
                 <input 
                   id="email"
                   type="text" 
@@ -108,17 +117,19 @@ export function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  style={{ width: '100%', padding: '1rem 3rem 1rem 1.25rem', borderRadius: '0.75rem', border: '1px solid var(--color-border)', background: 'var(--color-bg-input)', outline: 'none', transition: 'border-color 0.2s', fontSize: '0.95rem' }}
-                  onFocus={(e) => e.target.style.borderColor = 'var(--color-text-primary)'}
-                  onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'}
+                  className="w-full px-4 py-3.5 pr-10 rounded-xl text-sm border border-zinc-200 bg-zinc-50/70 text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-900 focus:bg-white focus:ring-4 focus:ring-zinc-900/5 transition-all"
                 />
                 {email && (
-                  <button type="button" onClick={() => setEmail('')} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer', padding: '0.25rem' }}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                  <button 
+                    type="button" 
+                    onClick={() => setEmail('')} 
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 p-0.5 transition-colors"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                   </button>
                 )}
               </div>
-              <div style={{ position: 'relative' }}>
+              <div className="relative">
                 <input 
                   id="password"
                   type={showPassword ? "text" : "password"} 
@@ -126,65 +137,62 @@ export function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  style={{ width: '100%', padding: '1rem 5rem 1rem 1.25rem', borderRadius: '0.75rem', border: '1px solid var(--color-border)', background: 'var(--color-bg-input)', outline: 'none', transition: 'border-color 0.2s', fontSize: '0.95rem' }}
-                  onFocus={(e) => e.target.style.borderColor = 'var(--color-text-primary)'}
-                  onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'}
+                  className="w-full px-4 py-3.5 pr-20 rounded-xl text-sm border border-zinc-200 bg-zinc-50/70 text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-900 focus:bg-white focus:ring-4 focus:ring-zinc-900/5 transition-all"
                 />
-                <div style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
                   {password && (
-                    <button type="button" onClick={() => setPassword('')} style={{ background: 'none', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer', padding: '0.25rem' }}>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    <button 
+                      type="button" 
+                      onClick={() => setPassword('')} 
+                      className="text-zinc-400 hover:text-zinc-600 p-1 transition-colors"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                     </button>
                   )}
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ background: 'none', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer', padding: '0.25rem' }}>
+                  <button 
+                    type="button" 
+                    onClick={() => setShowPassword(!showPassword)} 
+                    className="text-zinc-400 hover:text-zinc-600 p-1 transition-colors"
+                  >
                     {showPassword ? (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
                     ) : (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                     )}
                   </button>
                 </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '-0.5rem' }}>
+              <div className="flex items-center gap-2 pt-0.5">
                 <input 
                   type="checkbox" 
                   id="rememberMe" 
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  style={{ width: '1rem', height: '1rem', cursor: 'pointer' }}
+                  className="w-4 h-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900 cursor-pointer"
                 />
-                <label htmlFor="rememberMe" style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', cursor: 'pointer', userSelect: 'none' }}>
+                <label htmlFor="rememberMe" className="text-xs text-zinc-500 cursor-pointer select-none">
                   Remember me
                 </label>
               </div>
+
+              {/* Ultra-premium Linear / Vercel style submit button */}
               <button 
                 type="submit" 
                 disabled={loading}
-                style={{ 
-                  width: '100%', 
-                  padding: '1rem', 
-                  backgroundColor: loading ? '#2563eb' : '#1d4ed8', 
-                  color: '#fff', 
-                  border: 'none', 
-                  borderRadius: '0.75rem', 
-                  fontWeight: 600, 
-                  cursor: loading ? 'wait' : 'pointer', 
-                  marginTop: '0.5rem', 
-                  fontSize: '0.95rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.625rem',
-                  transition: 'all 0.2s ease',
-                  opacity: loading ? 0.95 : 1
-                }}
+                className={`relative overflow-hidden w-full py-3.5 px-4 rounded-xl font-medium text-sm transition-all duration-200 mt-2 flex items-center justify-center gap-2.5 shadow-xs ${
+                  loading 
+                    ? 'bg-zinc-900 text-zinc-200 cursor-wait after:absolute after:inset-0 after:-translate-x-full after:animate-[shimmer_2s_infinite] after:bg-gradient-to-r after:from-transparent after:via-white/10 after:to-transparent' 
+                    : 'bg-zinc-950 text-white hover:bg-zinc-850 active:scale-[0.99] cursor-pointer'
+                }`}
               >
                 {loading ? (
                   <>
-                    <Spinner size={18} color="#ffffff" />
-                    <span>{loadingStatus}</span>
+                    <Spinner size={16} color="#ffffff" />
+                    <span className="tracking-tight text-xs font-medium">{loadingStatus}</span>
                   </>
-                ) : 'Login'}
+                ) : (
+                  <span>Sign in</span>
+                )}
               </button>
             </form>
           </div>
