@@ -117,6 +117,35 @@ export function ReportPage() {
     return `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none' viewBox='0 0 100 100'%3E%3Cpath d='M -5,80 L 105,75' fill='none' stroke='%2310B981' stroke-width='35' stroke-linecap='round' opacity='0.4'/%3E%3C/svg%3E")`;
   };
 
+  const renderVerdictBadge = (verdict?: string) => {
+    if (!verdict) return null;
+    const map: Record<string, { label: string; bg: string; color: string; border: string }> = {
+      exceptional: { label: 'Exceptional', bg: '#f3e8ff', color: '#7e22ce', border: '#d8b4fe' },
+      strong: { label: 'Strong', bg: '#ecfdf5', color: '#047857', border: '#a7f3d0' },
+      solid: { label: 'Solid', bg: '#eff6ff', color: '#1d4ed8', border: '#bfdbfe' },
+      developing: { label: 'Developing', bg: '#fffbeb', color: '#b45309', border: '#fde68a' },
+      needs_work: { label: 'Needs Work', bg: '#fff1f2', color: '#be123c', border: '#fecdd3' },
+    };
+    const config = map[verdict.toLowerCase()] || { label: verdict, bg: 'var(--color-bg-alt)', color: 'var(--color-text-primary)', border: 'var(--color-border)' };
+    return (
+      <span style={{
+        fontSize: '0.75rem',
+        fontWeight: 700,
+        textTransform: 'uppercase',
+        letterSpacing: '0.05em',
+        padding: '0.25rem 0.65rem',
+        borderRadius: '999px',
+        backgroundColor: config.bg,
+        color: config.color,
+        border: `1px solid ${config.border}`,
+        marginLeft: '0.75rem',
+        verticalAlign: 'middle',
+      }}>
+        {config.label}
+      </span>
+    );
+  };
+
   const handleGenerateCover = async () => {
     if (user?.tier === 'FREE') {
       setIsPricingModalOpen(true);
@@ -342,10 +371,20 @@ export function ReportPage() {
 
           {analyses.english && (
             <section style={{ marginBottom: '4rem' }}>
-              <h2 style={{ fontSize: '1.5rem', color: 'var(--color-primary)', borderBottom: '2px solid var(--color-primary)', paddingBottom: '0.5rem', marginBottom: '1.5rem' }}>English Teacher Analysis</h2>
-              <div style={{ fontSize: '2rem', fontWeight: 600, color: 'var(--color-text-primary)', marginBottom: '1.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '2px solid var(--color-primary)', paddingBottom: '0.5rem', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <h2 style={{ fontSize: '1.5rem', color: 'var(--color-primary)', margin: 0 }}>English Teacher Analysis</h2>
+                {renderVerdictBadge(analyses.english.verdict)}
+              </div>
+              <div style={{ fontSize: '2rem', fontWeight: 600, color: 'var(--color-text-primary)', marginBottom: '1.25rem' }}>
                 Score: <span style={{ color: 'var(--color-primary)' }}>{analyses.english.score}/100</span>
               </div>
+
+              {analyses.english.verdictReason && (
+                <div style={{ padding: '1rem 1.25rem', backgroundColor: 'var(--color-bg-alt)', borderRadius: '0.5rem', borderLeft: '4px solid var(--color-primary)', marginBottom: '2rem', fontSize: '0.95rem', lineHeight: 1.6, color: 'var(--color-text-primary)' }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>Teacher's Verdict</div>
+                  <div style={{ fontStyle: 'italic' }}>"{analyses.english.verdictReason}"</div>
+                </div>
+              )}
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                 {analyses.english.strengths?.length > 0 && (
@@ -361,7 +400,7 @@ export function ReportPage() {
                   </div>
                 )}
 
-                {analyses.english.mistakes?.length > 0 && (
+                {analyses.english.mistakes?.length > 0 ? (
                   <div>
                     <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '0.75rem', color: 'var(--color-text-primary)' }}>Mistakes to Fix</h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -387,6 +426,11 @@ export function ReportPage() {
                         </div>
                       ))}
                     </div>
+                  </div>
+                ) : (
+                  <div style={{ padding: '1rem 1.25rem', backgroundColor: '#f0fdf4', borderRadius: '0.5rem', border: '1px solid #bbf7d0', color: '#16a34a', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <span style={{ fontSize: '1.25rem' }}>✓</span>
+                    <span style={{ fontWeight: 500, fontSize: '0.925rem' }}>No grammatical or mechanical errors found. Clean, confident prose!</span>
                   </div>
                 )}
 
@@ -419,6 +463,32 @@ export function ReportPage() {
                   </div>
                 )}
 
+                {analyses.english.optionalIdeas?.length > 0 && (
+                  <details style={{ padding: '1rem 1.25rem', backgroundColor: 'var(--color-bg-alt)', borderRadius: '0.5rem', border: '1px solid var(--color-border)' }}>
+                    <summary style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--color-text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', userSelect: 'none' }}>
+                      <span>💡 Optional stylistic ideas ({analyses.english.optionalIdeas.length})</span>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 400 }}>— not counted as mistakes</span>
+                    </summary>
+                    <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      {analyses.english.optionalIdeas.map((idea: any, idx: number) => (
+                        <div key={idx} style={{ padding: '0.75rem', backgroundColor: 'var(--color-bg-primary)', borderRadius: '0.375rem', border: '1px solid var(--color-border)', fontSize: '0.875rem' }}>
+                          {idea.originalText && (
+                            <div style={{ color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>
+                              Original: <em>"{idea.originalText}"</em>
+                            </div>
+                          )}
+                          <div style={{ fontWeight: 500, color: 'var(--color-text-primary)', marginBottom: '0.25rem' }}>
+                            Idea: "{idea.idea}"
+                          </div>
+                          <div style={{ color: 'var(--color-text-secondary)', fontSize: '0.8125rem' }}>
+                            {idea.explanation}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                )}
+
                 {analyses.english.repetition?.length > 0 && (
                   <div>
                     <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '0.75rem', color: 'var(--color-text-primary)' }}>Repetition & Patterns</h3>
@@ -448,10 +518,20 @@ export function ReportPage() {
 
           {analyses.story && (
             <section style={{ marginBottom: '4rem' }}>
-              <h2 style={{ fontSize: '1.5rem', color: '#16a34a', borderBottom: '2px solid #16a34a', paddingBottom: '0.5rem', marginBottom: '1.5rem' }}>Story Editor Analysis</h2>
-              <div style={{ fontSize: '2rem', fontWeight: 600, color: 'var(--color-text-primary)', marginBottom: '1.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '2px solid #16a34a', paddingBottom: '0.5rem', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <h2 style={{ fontSize: '1.5rem', color: '#16a34a', margin: 0 }}>Story Editor Analysis</h2>
+                {renderVerdictBadge(analyses.story.verdict)}
+              </div>
+              <div style={{ fontSize: '2rem', fontWeight: 600, color: 'var(--color-text-primary)', marginBottom: '1.25rem' }}>
                 Score: <span style={{ color: '#16a34a' }}>{analyses.story.overallScore}/100</span>
               </div>
+
+              {analyses.story.verdictReason && (
+                <div style={{ padding: '1rem 1.25rem', backgroundColor: '#f0fdf4', borderRadius: '0.5rem', borderLeft: '4px solid #16a34a', marginBottom: '2rem', fontSize: '0.95rem', lineHeight: 1.6, color: 'var(--color-text-primary)' }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#16a34a', marginBottom: '0.25rem' }}>Editor's Verdict</div>
+                  <div style={{ fontStyle: 'italic' }}>"{analyses.story.verdictReason}"</div>
+                </div>
+              )}
               
               <div className="score-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
                 <div style={{ padding: '1rem', backgroundColor: '#f0fdf4', borderRadius: '0.5rem', textAlign: 'center' }}>
@@ -498,7 +578,7 @@ export function ReportPage() {
                   </div>
                 )}
 
-                {analyses.story.problems?.length > 0 && (
+                {analyses.story.problems?.length > 0 ? (
                   <div>
                     <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '0.75rem', color: 'var(--color-text-primary)' }}>Areas for Improvement</h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -515,6 +595,37 @@ export function ReportPage() {
                       ))}
                     </div>
                   </div>
+                ) : (
+                  <div style={{ padding: '1rem 1.25rem', backgroundColor: '#f0fdf4', borderRadius: '0.5rem', border: '1px solid #bbf7d0', color: '#16a34a', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <span style={{ fontSize: '1.25rem' }}>✓</span>
+                    <span style={{ fontWeight: 500, fontSize: '0.925rem' }}>Solid story craft! No significant pacing, conflict, or structural problems found.</span>
+                  </div>
+                )}
+
+                {analyses.story.optionalIdeas?.length > 0 && (
+                  <details style={{ padding: '1rem 1.25rem', backgroundColor: '#f8fafc', borderRadius: '0.5rem', border: '1px solid var(--color-border)' }}>
+                    <summary style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--color-text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', userSelect: 'none' }}>
+                      <span>💡 Optional Craft Explorations ({analyses.story.optionalIdeas.length})</span>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 400 }}>— creative thoughts, not flaws</span>
+                    </summary>
+                    <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      {analyses.story.optionalIdeas.map((idea: any, idx: number) => (
+                        <div key={idx} style={{ padding: '0.75rem', backgroundColor: '#fff', borderRadius: '0.375rem', border: '1px solid var(--color-border)', fontSize: '0.875rem' }}>
+                          {idea.location && (
+                            <span style={{ fontSize: '0.75rem', backgroundColor: '#e0f2fe', color: '#0369a1', padding: '0.125rem 0.5rem', borderRadius: '999px', marginBottom: '0.35rem', display: 'inline-block' }}>
+                              {idea.location}
+                            </span>
+                          )}
+                          <div style={{ fontWeight: 500, color: 'var(--color-text-primary)', marginBottom: '0.25rem' }}>
+                            {idea.idea}
+                          </div>
+                          <div style={{ color: 'var(--color-text-secondary)', fontSize: '0.8125rem' }}>
+                            {idea.explanation}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </details>
                 )}
 
                 {analyses.story.suggestions?.length > 0 && (
@@ -549,10 +660,20 @@ export function ReportPage() {
 
           {analyses.director && (
             <section style={{ marginBottom: '2rem' }}>
-              <h2 style={{ fontSize: '1.5rem', color: '#9333ea', borderBottom: '2px solid #9333ea', paddingBottom: '0.5rem', marginBottom: '1.5rem' }}>Director AI Analysis</h2>
-              <div style={{ fontSize: '2rem', fontWeight: 600, color: 'var(--color-text-primary)', marginBottom: '1.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '2px solid #9333ea', paddingBottom: '0.5rem', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <h2 style={{ fontSize: '1.5rem', color: '#9333ea', margin: 0 }}>Director AI Analysis</h2>
+                {renderVerdictBadge(analyses.director.verdict)}
+              </div>
+              <div style={{ fontSize: '2rem', fontWeight: 600, color: 'var(--color-text-primary)', marginBottom: '1.25rem' }}>
                 Score: <span style={{ color: '#9333ea' }}>{analyses.director.overallScore}/100</span>
               </div>
+
+              {analyses.director.verdictReason && (
+                <div style={{ padding: '1rem 1.25rem', backgroundColor: '#faf5ff', borderRadius: '0.5rem', borderLeft: '4px solid #9333ea', marginBottom: '2rem', fontSize: '0.95rem', lineHeight: 1.6, color: 'var(--color-text-primary)' }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#9333ea', marginBottom: '0.25rem' }}>Director's Vision</div>
+                  <div style={{ fontStyle: 'italic' }}>"{analyses.director.verdictReason}"</div>
+                </div>
+              )}
               
               <div className="score-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
                 <div style={{ padding: '1rem', backgroundColor: '#faf5ff', borderRadius: '0.5rem', textAlign: 'center' }}>
@@ -587,7 +708,7 @@ export function ReportPage() {
                   </div>
                 )}
 
-                {analyses.director.problems?.length > 0 && (
+                {analyses.director.problems?.length > 0 ? (
                   <div>
                     <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '0.75rem', color: 'var(--color-text-primary)' }}>Missed Opportunities</h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -604,6 +725,37 @@ export function ReportPage() {
                       ))}
                     </div>
                   </div>
+                ) : (
+                  <div style={{ padding: '1rem 1.25rem', backgroundColor: '#faf5ff', borderRadius: '0.5rem', border: '1px solid #e9d5ff', color: '#9333ea', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <span style={{ fontSize: '1.25rem' }}>🎬</span>
+                    <span style={{ fontWeight: 500, fontSize: '0.925rem' }}>Cinematically striking. Rich visual language with strong shootability!</span>
+                  </div>
+                )}
+
+                {analyses.director.optionalIdeas?.length > 0 && (
+                  <details style={{ padding: '1rem 1.25rem', backgroundColor: '#faf5ff', borderRadius: '0.5rem', border: '1px solid var(--color-border)' }}>
+                    <summary style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--color-text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', userSelect: 'none' }}>
+                      <span>🎬 Optional Visual Angles ({analyses.director.optionalIdeas.length})</span>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 400 }}>— stylistic ideas</span>
+                    </summary>
+                    <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      {analyses.director.optionalIdeas.map((idea: any, idx: number) => (
+                        <div key={idx} style={{ padding: '0.75rem', backgroundColor: '#fff', borderRadius: '0.375rem', border: '1px solid var(--color-border)', fontSize: '0.875rem' }}>
+                          {idea.location && (
+                            <span style={{ fontSize: '0.75rem', backgroundColor: '#f3e8ff', color: '#7e22ce', padding: '0.125rem 0.5rem', borderRadius: '999px', marginBottom: '0.35rem', display: 'inline-block' }}>
+                              {idea.location}
+                            </span>
+                          )}
+                          <div style={{ fontWeight: 500, color: 'var(--color-text-primary)', marginBottom: '0.25rem' }}>
+                            {idea.idea}
+                          </div>
+                          <div style={{ color: 'var(--color-text-secondary)', fontSize: '0.8125rem' }}>
+                            {idea.explanation}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </details>
                 )}
 
                 {analyses.director.suggestions?.length > 0 && (

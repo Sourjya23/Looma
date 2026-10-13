@@ -1,6 +1,7 @@
 import { Queue, Worker, Job } from 'bullmq';
 import IORedis from 'ioredis';
 import { env } from '../config/env.js';
+import { PROMPT_VERSION } from '../schemas/analysis.schema.js';
 import { AIService } from './ai.service.js';
 import { prisma } from '../config/database.js';
 
@@ -42,6 +43,10 @@ export const aiWorker = new Worker('ai-analysis', async (job: Job<AIJobData>) =>
           repetition: englishResult.repetition,
           vocabularyImprovements: englishResult.vocabularyImprovements,
           learningPoints: englishResult.learningPoints,
+          verdict: englishResult.verdict,
+          verdictReason: englishResult.verdictReason,
+          optionalIdeas: englishResult.optionalIdeas as any,
+          promptVersion: PROMPT_VERSION,
         };
         await prisma.englishAnalysis.upsert({
           where: { submissionId },
@@ -82,6 +87,10 @@ export const aiWorker = new Worker('ai-analysis', async (job: Job<AIJobData>) =>
           problems: storyResult.problems,
           suggestions: storyResult.suggestions,
           metaEvaluation: storyResult.metaEvaluation,
+          verdict: storyResult.verdict,
+          verdictReason: storyResult.verdictReason,
+          optionalIdeas: storyResult.optionalIdeas as any,
+          promptVersion: PROMPT_VERSION,
         };
         await prisma.storyAnalysis.upsert({
           where: { submissionId },
@@ -100,6 +109,10 @@ export const aiWorker = new Worker('ai-analysis', async (job: Job<AIJobData>) =>
           strengths: directorResult.strengths,
           problems: directorResult.problems,
           suggestions: directorResult.suggestions,
+          verdict: directorResult.verdict,
+          verdictReason: directorResult.verdictReason,
+          optionalIdeas: directorResult.optionalIdeas as any,
+          promptVersion: PROMPT_VERSION,
         };
         await prisma.directorAnalysis.upsert({
           where: { submissionId },

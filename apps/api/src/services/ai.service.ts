@@ -1,4 +1,4 @@
-import { EnglishAnalysisSchema, EnglishAnalysisType, StoryAnalysisSchema, StoryAnalysisType, DirectorAnalysisSchema, DirectorAnalysisType } from '../schemas/analysis.schema.js';
+import { EnglishAnalysisSchema, StoryAnalysisSchema, DirectorAnalysisSchema, postProcessEnglish, postProcessStory, postProcessDirector } from '../schemas/analysis.schema.js';
 import { CoverDesignSchema, CoverDesignType } from '../schemas/cover.schema.js';
 import { generateEnglishTeacherPrompt, generateStoryEditorPrompt, generateDirectorPrompt, generateProfileInterpretationPrompt, generateCoverDesignPrompt } from './ai.prompts.js';
 import { zodToJsonSchema } from 'zod-to-json-schema';
@@ -6,7 +6,7 @@ import OpenAI from 'openai';
 import { jsonrepair } from 'jsonrepair';
 
 const baseURL = process.env.AI_BASE_URL || 'https://generativelanguage.googleapis.com/v1beta/openai/';
-const MODEL_NAME = process.env.MODEL_NAME || 'gemini-3.6-flash';
+const MODEL_NAME = process.env.MODEL_NAME || 'gemini-3-flash-preview';
 
 // ── Key Rotation Manager ─────────────────────────────────────────────────────
 // Load all GEMINI_API_KEY_* env vars (GEMINI_API_KEY, GEMINI_API_KEY_2, GEMINI_API_KEY_3, ...)
@@ -47,23 +47,36 @@ const rotateKey = (): boolean => {
 
 const isQuotaError = (err: any): boolean => {
   const msg = String(err?.message || err?.status || '');
-  return err?.status === 429 || msg.includes('429') || msg.includes('RESOURCE_EXHAUSTED') || msg.includes('quota');
+  return (
+    err?.status === 429 ||
+    msg.includes('429') ||
+    msg.includes('RESOURCE_EXHAUSTED') ||
+    msg.includes('quota') ||
+    err?.status === 503 ||
+    msg.includes('503') ||
+    msg.includes('UNAVAILABLE') ||
+    msg.includes('high demand')
+  );
 };
 
-/** Call the AI API with automatic key rotation on quota errors */
+/** Call the AI API with automatic key rotation on quota / temporary capacity errors */
 const callWithRotation = async (fn: (client: OpenAI) => Promise<any>): Promise<any> => {
   const tried = new Set<number>();
   while (true) {
     if (tried.has(currentKeyIndex)) {
-      throw new Error(`All ${API_KEYS.length} API key(s) have been exhausted (quota exceeded). Retry after quota resets.`);
+      throw new Error(`All ${API_KEYS.length} API key(s) have been exhausted or rate limited. Please retry in a few moments.`);
     }
     tried.add(currentKeyIndex);
     try {
       return await fn(getClient());
     } catch (err: any) {
       if (isQuotaError(err)) {
-        console.warn(`[AIService] Key ${currentKeyIndex} quota exceeded. Rotating...`);
-        if (!rotateKey()) throw err; // no other key available
+        console.warn(`[AIService] Key ${currentKeyIndex} hit quota/capacity limit (503/429). Rotating...`);
+        if (!rotateKey()) {
+          // If only 1 key, wait 1.5s and retry once
+          await new Promise(r => setTimeout(r, 1500));
+          return await fn(getClient());
+        }
       } else {
         throw err;
       }
@@ -110,7 +123,7 @@ export class AIService {
     return clean.trim();
   }
 
-  static async analyzeEnglish(submissionId: string, content: string, challengePrompt: string): Promise<EnglishAnalysisType> {
+  static async analyzeEnglish(submissionId: string, content: string, challengePrompt: string): Promise<ReturnType<typeof postProcessEnglish>> {
     try {
       const schemaJson = JSON.stringify(zodToJsonSchema(EnglishAnalysisSchema as any));
       const prompt = generateEnglishTeacherPrompt(content, challengePrompt, schemaJson);
@@ -127,7 +140,7 @@ export class AIService {
       if (!responseContent) throw new Error("AI returned empty response");
 
       const json = JSON.parse(this.sanitizeJSON(responseContent));
-      return EnglishAnalysisSchema.parse(json);
+      return postProcessEnglish(EnglishAnalysisSchema.parse(json), content);
       
     } catch (error) {
       console.error('Error communicating with AI API:', error);
@@ -135,7 +148,7 @@ export class AIService {
     }
   }
 
-  static async analyzeStory(submissionId: string, content: string, challengePrompt: string): Promise<StoryAnalysisType> {
+  static async analyzeStory(submissionId: string, content: string, challengePrompt: string): Promise<ReturnType<typeof postProcessStory>> {
     try {
       const schemaJson = JSON.stringify(zodToJsonSchema(StoryAnalysisSchema as any));
       const prompt = generateStoryEditorPrompt(content, challengePrompt, schemaJson);
@@ -144,7 +157,7 @@ export class AIService {
         messages: [{ role: 'user', content: prompt }],
         model: MODEL_NAME,
         max_tokens: 4000,
-        temperature: 0.3,
+        temperature: 0.2,
         response_format: { type: 'json_object' }
       }));
 
@@ -152,7 +165,7 @@ export class AIService {
       if (!responseContent) throw new Error("AI returned empty response");
 
       const json = JSON.parse(this.sanitizeJSON(responseContent));
-      return StoryAnalysisSchema.parse(json);
+      return postProcessStory(StoryAnalysisSchema.parse(json));
       
     } catch (error) {
       console.error('Error communicating with AI API:', error);
@@ -160,7 +173,7 @@ export class AIService {
     }
   }
 
-  static async analyzeDirector(submissionId: string, content: string, challengePrompt: string): Promise<DirectorAnalysisType> {
+  static async analyzeDirector(submissionId: string, content: string, challengePrompt: string): Promise<ReturnType<typeof postProcessDirector>> {
     try {
       const schemaJson = JSON.stringify(zodToJsonSchema(DirectorAnalysisSchema as any));
       const prompt = generateDirectorPrompt(content, challengePrompt, schemaJson);
@@ -169,7 +182,7 @@ export class AIService {
         messages: [{ role: 'user', content: prompt }],
         model: MODEL_NAME,
         max_tokens: 4000,
-        temperature: 0.3,
+        temperature: 0.2,
         response_format: { type: 'json_object' }
       }));
 
@@ -177,7 +190,7 @@ export class AIService {
       if (!responseContent) throw new Error("AI returned empty response");
 
       const json = JSON.parse(this.sanitizeJSON(responseContent));
-      return DirectorAnalysisSchema.parse(json);
+      return postProcessDirector(DirectorAnalysisSchema.parse(json));
       
     } catch (error) {
       console.error('Error communicating with AI API:', error);
