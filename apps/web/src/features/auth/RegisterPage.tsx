@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from './AuthContext';
+import { Spinner } from '../../components/ui/Spinner';
 import toast from 'react-hot-toast';
 import { API_BASE } from '@/lib/api';
 
@@ -10,8 +11,22 @@ export function RegisterPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingStatus, setLoadingStatus] = useState('Creating account...');
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading) {
+      setLoadingStatus('Creating account...');
+      return;
+    }
+    const t1 = setTimeout(() => setLoadingStatus('Connecting to server...'), 3500);
+    const t2 = setTimeout(() => setLoadingStatus('Waking up cloud backend...'), 8000);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, [loading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,7 +44,12 @@ export function RegisterPage() {
       if (data.success) {
         login(data.data.token, data.data.user);
         toast.success('Successfully registered!');
-        navigate('/dashboard');
+        navigate('/dashboard', { replace: true });
+        setTimeout(() => {
+          if (window.location.pathname.includes('/register')) {
+            window.location.href = '/dashboard';
+          }
+        }, 300);
       } else {
         toast.error(data.message || 'Registration failed');
         setError(data.message || 'Registration failed');
@@ -115,13 +135,30 @@ export function RegisterPage() {
               <button 
                 type="submit" 
                 disabled={loading}
-                style={{ width: '100%', padding: '1rem', backgroundColor: '#1d4ed8', color: '#fff', border: 'none', borderRadius: '0.75rem', fontWeight: 600, cursor: 'pointer', marginTop: '0.5rem', fontSize: '0.95rem' }}
+                style={{ 
+                  width: '100%', 
+                  padding: '1rem', 
+                  backgroundColor: loading ? '#2563eb' : '#1d4ed8', 
+                  color: '#fff', 
+                  border: 'none', 
+                  borderRadius: '0.75rem', 
+                  fontWeight: 600, 
+                  cursor: loading ? 'wait' : 'pointer', 
+                  marginTop: '0.5rem', 
+                  fontSize: '0.95rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.625rem',
+                  transition: 'all 0.2s ease',
+                  opacity: loading ? 0.95 : 1
+                }}
               >
                 {loading ? (
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-                    <div className="spinner" style={{ width: '18px', height: '18px', borderWidth: '2px', borderColor: 'rgba(255,255,255,0.3)', borderTopColor: '#fff' }}></div>
-                    <span>Signing up...</span>
-                  </div>
+                  <>
+                    <Spinner size={18} color="#ffffff" />
+                    <span>{loadingStatus}</span>
+                  </>
                 ) : 'Create Account'}
               </button>
             </form>

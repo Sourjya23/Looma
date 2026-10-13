@@ -46,7 +46,24 @@ export const PricingModal: React.FC<PricingModalProps> = ({ isOpen, onClose }) =
               <li>✓ Advanced PDF Exports</li>
               <li>✓ Ad-Free Experience</li>
             </ul>
-            <button className="btn-pill btn-pill-primary upgrade-btn" onClick={() => alert('Payment gateway integration coming soon!')}>Upgrade Now</button>
+            <button
+              className="btn-pill btn-pill-primary upgrade-btn"
+              onClick={() => {
+                onClose();
+                window.location.href = '/pricing';
+              }}
+            >
+              Upgrade to Pro ⚡
+            </button>
+            <div style={{ textAlign: 'center', marginTop: '0.75rem' }}>
+              <a
+                href="/pricing"
+                onClick={onClose}
+                style={{ fontSize: '0.8rem', color: '#6366f1', textDecoration: 'none', fontWeight: 600 }}
+              >
+                Compare all plans & features →
+              </a>
+            </div>
           </div>
         </div>
       </div>

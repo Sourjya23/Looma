@@ -19,6 +19,9 @@ import profileRoutes from './routes/profile.routes.js';
 import dashboardRoutes from './routes/dashboard.routes.js';
 import gamificationRoutes from './routes/gamification.routes.js';
 import leaderboardRoutes from './routes/leaderboard.routes.js';
+import subscriptionRoutes from './routes/subscription.routes.js';
+import cronRoutes from './routes/cron.routes.js';
+import { CronService } from './services/cron.service.js';
 
 const app = express();
 app.set('trust proxy', 1); // Trust first proxy (Render) for correct IP rate limiting
@@ -37,21 +40,22 @@ app.use(morgan(env.NODE_ENV === 'development' ? 'dev' : 'combined'));
 app.use('/public', express.static(path.join(process.cwd(), 'public')));
 
 // Rate Limiting Config
-// Rate Limiting Config
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 99999999, // Disabled for now to prevent issues
+  max: env.NODE_ENV === 'production' ? 300 : 10000, // 300 requests per 15 min in prod
   standardHeaders: true,
   legacyHeaders: false,
   passOnStoreError: true,
-  store: undefined, // Removed RedisStore to save Redis requests, falls back to memory
+  message: { error: 'Too many requests, please try again later.' },
 });
 
 const aiLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 min
-  max: 99999999, // Disabled for now
+  max: env.NODE_ENV === 'production' ? 15 : 1000, // 15 AI requests per minute in prod
+  standardHeaders: true,
+  legacyHeaders: false,
   passOnStoreError: true,
-  store: undefined, // Removed RedisStore to save Redis requests, falls back to memory
+  message: { error: 'Too many AI requests. Please wait a minute before trying again.' },
 });
 
 // ── Routes ──
@@ -66,6 +70,8 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/gamification', gamificationRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
+app.use('/api/subscription', subscriptionRoutes);
+app.use('/api/cron', cronRoutes);
 app.use('/api', aiLimiter, aiRoutes); // stricter limit for AI
 
 // ── Error handling ──
@@ -81,6 +87,9 @@ app.listen(env.API_PORT, '0.0.0.0', () => {
   │  Env:  ${env.NODE_ENV}               │
   └─────────────────────────────────────┘
   `);
+
+  // Initialize automated cron jobs
+  CronService.initScheduler();
 
   // Rebuild leaderboard from DB on startup so Redis is always in sync
   if (redis) {

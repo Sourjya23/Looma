@@ -53,7 +53,19 @@ export function AppLayout() {
               </svg>
             </button>
           </div>
-          <div className="nav-right" style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+          <div className="nav-right" style={{ display: 'flex', alignItems: 'center', gap: '1.75rem' }}>
+            <Link to="/pricing" className="nav-text-link" style={{ textDecoration: 'none', color: 'var(--color-text-primary)', fontWeight: 500, fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <span>Pricing</span>
+              {user?.tier && user.tier !== 'FREE' ? (
+                <span style={{ fontSize: '0.6875rem', padding: '0.125rem 0.45rem', borderRadius: '12px', background: 'linear-gradient(135deg, #a855f7, #6366f1)', color: '#ffffff', fontWeight: 700 }}>
+                  {user.tier}
+                </span>
+              ) : (
+                <span style={{ fontSize: '0.6875rem', padding: '0.125rem 0.45rem', borderRadius: '12px', background: '#0a0a0a', color: '#ffffff', fontWeight: 600 }}>
+                  PRO
+                </span>
+              )}
+            </Link>
             <Link to="/leaderboard" className="nav-text-link" style={{ textDecoration: 'none', color: 'var(--color-text-primary)', fontWeight: 500, fontSize: '0.875rem' }}>
               Leaderboard
             </Link>

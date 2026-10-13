@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LandingPage } from '../features/landing/LandingPage';
 import { HowItWorksPage } from '../features/landing/HowItWorksPage';
+import { PricingPage } from '../features/pricing/PricingPage';
 import { LoginPage } from '../features/auth/LoginPage';
 import { RegisterPage } from '../features/auth/RegisterPage';
 import { NewChallengePage } from '../features/challenge/NewChallengePage';
@@ -48,9 +49,10 @@ export default function App() {
       <AuthProvider>
         <BrowserRouter>
           <Routes>
-            {/* Public routes — redirect to /dashboard if already logged in */}
+            {/* Public routes */}
             <Route path="/" element={<AuthRedirect><LandingPage /></AuthRedirect>} />
             <Route path="/how-it-works" element={<HowItWorksPage />} />
+            <Route path="/pricing" element={<PricingPage />} />
             <Route path="/login" element={<AuthRedirect><LoginPage /></AuthRedirect>} />
             <Route path="/register" element={<AuthRedirect><RegisterPage /></AuthRedirect>} />
 

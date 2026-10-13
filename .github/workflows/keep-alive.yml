@@ -1,0 +1,60 @@
+name: 24/7 Keep-Alive & Supabase Ping
+
+on:
+  schedule:
+    # Runs every 12 minutes (Render sleeps after 15 mins; Supabase pauses after 7 days)
+    - cron: '*/12 * * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub Actions UI
+
+jobs:
+  ping:
+    name: Ping Story Writing API
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Send Keep-Alive Ping
+        run: |
+          API_URL="${{ secrets.API_URL }}"
+          
+          # Default to production Render URL if secret not configured yet
+          if [ -z "$API_URL" ]; then
+            API_URL="https://story-writing-api.onrender.com"
+          fi
+          
+          echo "Pinging: $API_URL/api/cron/keep-alive"
+          
+          RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}\nLATENCY:%{time_total}s" \
+            -H "User-Agent: Looma-KeepAlive-Bot/1.0" \
+            "$API_URL/api/cron/keep-alive" || true)
+          
+          echo "$RESPONSE"
+          
+          STATUS=$(echo "$RESPONSE" | grep "HTTP_STATUS" | cut -d':' -f2)
+          
+          if [ "$STATUS" = "200" ] || [ "$STATUS" = "207" ]; then
+            echo "✅ Ping successful! Render service is warm and Supabase database is active."
+          else
+            echo "⚠️ Non-200 status code received: $STATUS (service might be booting or URL not yet deployed)"
+          fi
+
+  daily-maintenance:
+    name: Daily Platform Maintenance
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '5 0 * * *' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Trigger Daily Maintenance Tasks
+        run: |
+          API_URL="${{ secrets.API_URL }}"
+          CRON_SECRET="${{ secrets.CRON_SECRET }}"
+          
+          if [ -z "$API_URL" ]; then
+            API_URL="https://story-writing-api.onrender.com"
+          fi
+          
+          echo "Triggering daily maintenance at: $API_URL/api/cron/daily-tasks"
+          
+          curl -s -X POST \
+            -H "Content-Type: application/json" \
+            -H "x-cron-secret: $CRON_SECRET" \
+            "$API_URL/api/cron/daily-tasks" || true

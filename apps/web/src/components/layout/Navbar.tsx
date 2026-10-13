@@ -23,6 +23,7 @@ export function Navbar() {
         {/* Desktop Links - Center */}
         <div className="hidden md:flex items-center justify-center gap-8" style={{ flex: 1 }}>
           <a href="/how-it-works" className="text-gray-500 hover:text-black transition-colors text-sm font-medium">How it works</a>
+          <a href="/pricing" className="text-gray-500 hover:text-black transition-colors text-sm font-medium">Pricing</a>
           <a href="/#features" className="text-gray-500 hover:text-black transition-colors text-sm font-medium">Features</a>
           <a href="/#process" className="text-gray-500 hover:text-black transition-colors text-sm font-medium">Process</a>
         </div>
@@ -55,6 +56,7 @@ export function Navbar() {
       {mobileMenuOpen && (
         <div className="md:hidden absolute top-[80px] left-0 right-0 bg-white border-b border-gray-200 shadow-xl flex flex-col p-6 gap-6 animate-fade-in-up z-50">
           <a href="/how-it-works" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium text-gray-700 hover:text-black">How it works</a>
+          <a href="/pricing" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium text-gray-700 hover:text-black">Pricing</a>
           <a href="/#features" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium text-gray-700 hover:text-black">Features</a>
           <a href="/#process" onClick={() => setMobileMenuOpen(false)} className="text-lg font-medium text-gray-700 hover:text-black">Process</a>
           <div className="pt-4 border-t border-gray-100">

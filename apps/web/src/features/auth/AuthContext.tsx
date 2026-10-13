@@ -89,6 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = (newToken: string, newUser: User, rememberMe: boolean = true) => {
     setToken(newToken);
     setUser(newUser);
+    setIsLoading(false);
     if (rememberMe) {
       localStorage.setItem('token', newToken);
       localStorage.setItem('user', JSON.stringify(newUser));

@@ -8,10 +8,22 @@ dist/
 build/
 out/
 
-# Environment
+# ── Environment & Secrets (CRITICAL) ──
+# Block ALL .env files everywhere in the repo
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# Block common secret/key file patterns
+*.pem
+*.key
+*.cert
+*.p12
+secrets/
+.secrets
 
 # IDE
 .vscode/
@@ -38,10 +50,12 @@ services/ai/venv/
 *.log
 npm-debug.log*
 
-# Testing
+# Testing & Scratch Scripts
 coverage/
 .playwright/
+test-*.js
+test_*.ts
+fix.js
 
 # Misc
 *.tsbuildinfo
-.env.production
