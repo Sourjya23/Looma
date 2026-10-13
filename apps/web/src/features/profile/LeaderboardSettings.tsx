@@ -1,114 +1,132 @@
 import { useState } from 'react';
+import { Camera, Check, AlertCircle, Globe, User } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { useAuth } from '../auth/AuthContext';
 import { Spinner } from '../../components/ui/Spinner';
-import { API_BASE } from '@/lib/api';
+import { API_BASE, getAvatarUrl } from '@/lib/api';
 
-export function LeaderboardSettings() {
-  const { user, token } = useAuth();
-  
-  const [displayName, setDisplayName] = useState(user?.displayName || '');
-  const [optIn, setOptIn] = useState(user?.leaderboardOptIn || false);
+const MAX_NAME = 32;
+
+export function LeaderboardSettings({ onChangePhoto }: { onChangePhoto?: () => void }) {
+  const { user, token, updateUser } = useAuth();
+
+  const initialName = user?.displayName || '';
+  const initialOptIn = user?.leaderboardOptIn || false;
+  const [displayName, setDisplayName] = useState(initialName);
+  const [optIn, setOptIn] = useState(initialOptIn);
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
-  const handleSave = async () => {
+  const trimmed = displayName.trim();
+  const dirty = trimmed !== initialName.trim() || optIn !== initialOptIn;
+  const tooLong = trimmed.length > MAX_NAME;
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!dirty || tooLong) return;
     setStatus('saving');
     try {
       const res = await fetch(`${API_BASE}/leaderboard/opt-in`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ displayName, leaderboardOptIn: optIn })
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ displayName: trimmed || null, leaderboardOptIn: optIn }),
       });
-
-      if (res.ok) {
-        setStatus('saved');
-        setTimeout(() => setStatus('idle'), 2500);
-      } else {
-        setStatus('error');
-      }
-    } catch (e) {
-      console.error(e);
+      if (!res.ok) throw new Error(String(res.status));
+      updateUser({ displayName: trimmed || null, leaderboardOptIn: optIn });
+      setStatus('saved');
+      toast.success('Settings saved');
+      setTimeout(() => setStatus('idle'), 2000);
+    } catch {
       setStatus('error');
     }
   };
 
+  const reset = () => { setDisplayName(initialName); setOptIn(initialOptIn); setStatus('idle'); };
+
   return (
-    <div className="p-6 md:p-8 rounded-2xl bg-white border border-zinc-200/80 shadow-2xs space-y-6">
-      <div className="pb-3 border-b border-zinc-100">
-        <h2 className="text-base font-semibold text-zinc-900 tracking-tight">Public Profile & Leaderboard</h2>
-        <p className="text-xs text-zinc-500">Manage your visibility across the global Looma community</p>
-      </div>
-
-      <div className="max-w-xl space-y-5">
-        <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-2">
-            Public Pen Name / Display Name
-          </label>
-          <input 
-            type="text" 
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            placeholder="Anonymous Storyteller"
-            className="w-full px-4 py-2.5 rounded-xl text-sm border border-zinc-200 bg-zinc-50/70 text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-900 focus:bg-white focus:ring-4 focus:ring-zinc-900/5 transition-all"
-          />
-          <p className="text-[11px] text-zinc-400 mt-1.5">
-            This name will appear on the weekly ranking and social shares.
-          </p>
-        </div>
-
-        {/* Custom Toggle Switch */}
-        <div className="flex items-center justify-between p-4 rounded-xl bg-zinc-50 border border-zinc-100">
-          <div className="space-y-0.5 pr-4">
-            <span className="text-xs font-semibold text-zinc-900">Include in Global Leaderboard</span>
-            <p className="text-[11px] text-zinc-500">
-              Showcase your earned XP and streak on the public rankings. Rankings measure practice consistency, never private story drafts.
-            </p>
+    <form onSubmit={handleSave} className="space-y-8 max-w-2xl">
+      {/* Photo */}
+      <Row title="Photo" description="Shown on your profile and the leaderboard. JPG, PNG or WebP, up to 5 MB.">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full overflow-hidden bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-400">
+            {user?.avatarUrl ? <img src={getAvatarUrl(user.avatarUrl)} alt="" className="w-full h-full object-cover" /> : <User size={18} />}
           </div>
+          <button type="button" onClick={onChangePhoto} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-zinc-200 bg-white hover:bg-zinc-50 text-[13px] font-medium text-zinc-800 transition-colors">
+            <Camera size={14} /> Change photo
+          </button>
+        </div>
+      </Row>
+
+      {/* Display name */}
+      <Row title="Display name" description="Used on the leaderboard and when you share a story. Leave empty to use your username.">
+        <label htmlFor="displayName" className="sr-only">Display name</label>
+        <input
+          id="displayName"
+          type="text"
+          value={displayName}
+          onChange={e => { setDisplayName(e.target.value); if (status !== 'saving') setStatus('idle'); }}
+          placeholder={user?.username || 'Your name'}
+          aria-invalid={tooLong}
+          className={`w-full px-3 py-2 rounded-lg text-sm bg-white text-zinc-900 placeholder:text-zinc-400 border focus:outline-none focus:ring-2 transition ${
+            tooLong ? 'border-red-300 focus:ring-red-500/20' : 'border-zinc-200 focus:border-zinc-400 focus:ring-zinc-900/10'
+          }`}
+        />
+        <div className={`mt-1.5 text-xs text-right tabular-nums ${tooLong ? 'text-red-600' : 'text-zinc-400'}`}>
+          {trimmed.length}/{MAX_NAME}
+        </div>
+      </Row>
+
+      {/* Leaderboard */}
+      <Row title="Leaderboard" description="Show your XP and streak in public rankings. Your stories are never shared.">
+        <label className="flex items-center justify-between gap-4 p-3.5 rounded-lg border border-zinc-200 bg-white cursor-pointer">
+          <span className="inline-flex items-center gap-2.5 text-sm text-zinc-800">
+            <Globe size={15} className="text-zinc-500" />
+            Appear on the leaderboard
+          </span>
           <button
             type="button"
             role="switch"
             aria-checked={optIn}
-            onClick={() => setOptIn(!optIn)}
-            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-zinc-950 focus:ring-offset-2 ${
-              optIn ? 'bg-zinc-950' : 'bg-zinc-200'
-            }`}
+            onClick={() => { setOptIn(v => !v); setStatus('idle'); }}
+            className={`relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 ${optIn ? 'bg-zinc-900' : 'bg-zinc-300'}`}
           >
-            <span
-              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
-                optIn ? 'translate-x-5' : 'translate-x-0'
-              }`}
-            />
+            <span className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${optIn ? 'translate-x-4' : ''}`} />
           </button>
-        </div>
+        </label>
+      </Row>
 
-        <div className="flex items-center gap-3 pt-2">
-          <button 
-            onClick={handleSave}
-            disabled={status === 'saving'}
-            className="px-5 py-2.5 rounded-xl bg-zinc-950 text-white text-xs font-semibold hover:bg-zinc-850 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center gap-2 shadow-xs"
-          >
-            {status === 'saving' ? (
-              <>
-                <Spinner size={14} color="#ffffff" />
-                <span>Saving...</span>
-              </>
-            ) : status === 'saved' ? (
-              <>
-                <span className="text-emerald-400">✓</span>
-                <span>Preferences Saved</span>
-              </>
-            ) : (
-              <span>Save Changes</span>
-            )}
+      {/* Actions */}
+      <div className="flex items-center justify-end gap-3 pt-5 border-t border-zinc-200">
+        {status === 'error' && (
+          <span className="mr-auto inline-flex items-center gap-1.5 text-xs text-red-600">
+            <AlertCircle size={14} /> Couldn't save. Try again.
+          </span>
+        )}
+        {dirty && status !== 'saving' && (
+          <button type="button" onClick={reset} className="px-3 py-2 text-[13px] font-medium text-zinc-600 hover:text-zinc-900">
+            Cancel
           </button>
-
-          {status === 'error' && (
-            <span className="text-xs font-medium text-red-600">Failed to save settings. Please try again.</span>
-          )}
-        </div>
+        )}
+        <button
+          type="submit"
+          disabled={!dirty || tooLong || status === 'saving'}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-950 hover:bg-zinc-800 text-white text-[13px] font-medium transition-colors disabled:bg-zinc-200 disabled:text-zinc-500 disabled:cursor-not-allowed"
+        >
+          {status === 'saving' ? <><Spinner size={13} color="#fff" /> Saving</> :
+           status === 'saved' ? <><Check size={14} /> Saved</> : 'Save changes'}
+        </button>
       </div>
+    </form>
+  );
+}
+
+function Row({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-3 md:gap-8">
+      <div>
+        <h3 className="text-sm font-medium text-zinc-950">{title}</h3>
+        <p className="mt-1 text-xs text-zinc-500 leading-relaxed">{description}</p>
+      </div>
+      <div>{children}</div>
     </div>
   );
 }

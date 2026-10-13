@@ -1,368 +1,435 @@
-import { useEffect, useState, useRef } from 'react';
-import { useAuth } from '../auth/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
+import toast from 'react-hot-toast';
+import {
+  Camera, Flame, Trophy, FileText, Type, Gauge, PenLine, Check,
+  TrendingUp, TrendingDown, Minus, ArrowRight, ChevronDown, Calendar,
+  AtSign, Sparkles, Settings, LayoutGrid, Award,
+} from 'lucide-react';
+import { useAuth } from '../auth/AuthContext';
 import { AchievementsGrid } from './AchievementsGrid';
 import { LeaderboardSettings } from './LeaderboardSettings';
 import { Spinner } from '../../components/ui/Spinner';
-import toast from 'react-hot-toast';
 import { API_BASE, getAvatarUrl } from '@/lib/api';
 
-const LEVEL_THRESHOLDS = [
-  0, 100, 250, 450, 750, 1150, 1650, 2250, 3000, 4000, 5000, 6500, 8500, 11000, 14000
+const LEVEL_THRESHOLDS = [0, 100, 250, 450, 750, 1150, 1650, 2250, 3000, 4000, 5000, 6500, 8500, 11000, 14000];
+
+type Tab = 'overview' | 'achievements' | 'settings';
+const TABS: { id: Tab; label: string; icon: typeof LayoutGrid }[] = [
+  { id: 'overview', label: 'Overview', icon: LayoutGrid },
+  { id: 'achievements', label: 'Achievements', icon: Award },
+  { id: 'settings', label: 'Settings', icon: Settings },
 ];
+
+interface WritingProfile {
+  averageGrammarScore: number;
+  averageStoryScore: number;
+  averageDirectorScore: number;
+  averageWordCount: number;
+  averageWritingSpeed: number;
+  totalSessions: number;
+  strengths: { category: string; label: string }[];
+  weaknesses: { category: string; subCategory: string; count: number; affectedSessions?: number; trend?: string }[];
+  trends: { subCategory: string; state: string }[];
+  aiInterpretation: string | null;
+  updatedAt?: string;
+}
+
+const humanize = (s?: string) => (s || '').replace(/_/g, ' ').replace(/^\w/, c => c.toUpperCase());
+
+/** Resize an image file to max 200px and return a JPEG data URL. */
+function compressImage(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('read failed'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('decode failed'));
+      img.onload = () => {
+        const scale = Math.min(1, 200 / Math.max(img.width, img.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return reject(new Error('no canvas'));
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', 0.85));
+      };
+      img.src = reader.result as string;
+    };
+    reader.readAsDataURL(file);
+  });
+}
 
 export function ProfilePage() {
   const { token, user, updateUser } = useAuth();
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<any>(null);
+  const [params, setParams] = useSearchParams();
+  const tab = (TABS.some(t => t.id === params.get('tab')) ? params.get('tab') : 'overview') as Tab;
+  const setTab = (t: Tab) => setParams(t === 'overview' ? {} : { tab: t }, { replace: true });
+
+  const [profile, setProfile] = useState<WritingProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      if (!token) return;
+    if (!token) return;
+    let cancelled = false;
+    (async () => {
       try {
-        const res = await fetch(`${API_BASE}/profile`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const res = await fetch(`${API_BASE}/profile`, { headers: { Authorization: `Bearer ${token}` } });
         const data = await res.json();
-        if (data.success && data.data) {
-          setProfile(data.data);
+        if (!cancelled) {
+          if (data.success) setProfile(data.data);
+          else setLoadError(true);
         }
-      } catch (err) {
-        console.error('Failed to fetch profile', err);
+      } catch {
+        if (!cancelled) setLoadError(true);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
-    };
-    fetchProfile();
+    })();
+    return () => { cancelled = true; };
   }, [token]);
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
-        <Spinner size={24} color="#09090b" />
-        <p className="text-xs font-medium text-zinc-500 tracking-tight">Loading writer portfolio...</p>
-      </div>
-    );
-  }
-
-  // No early return for !profile — allow all users to manage avatar, trophies, and leaderboard settings
-
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = ''; // allow re-selecting the same file
     if (!file) return;
+    if (file.size > 5 * 1024 * 1024) return void toast.error('Image is too large. Max 5 MB.');
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image is too large. Max 5MB.');
-      return;
+    setUploadingAvatar(true);
+    try {
+      const avatar = await compressImage(file);
+      const res = await fetch(`${API_BASE}/profile/avatar`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ avatar }),
+      });
+      const data = await res.json();
+      if (data.success && data.data?.avatarUrl) {
+        updateUser({ avatarUrl: data.data.avatarUrl });
+        toast.success('Photo updated');
+      } else {
+        toast.error(data.message || 'Could not update photo');
+      }
+    } catch {
+      toast.error('Could not update photo');
+    } finally {
+      setUploadingAvatar(false);
     }
-
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      const base64 = event.target?.result as string;
-      
-      const img = new Image();
-      img.onload = async () => {
-        const canvas = document.createElement('canvas');
-        const MAX_WIDTH = 200;
-        const MAX_HEIGHT = 200;
-        let width = img.width;
-        let height = img.height;
-
-        if (width > height) {
-          if (width > MAX_WIDTH) {
-            height *= MAX_WIDTH / width;
-            width = MAX_WIDTH;
-          }
-        } else {
-          if (height > MAX_HEIGHT) {
-            width *= MAX_HEIGHT / height;
-            height = MAX_HEIGHT;
-          }
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        
-        if (ctx) {
-          ctx.drawImage(img, 0, 0, width, height);
-          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.85);
-
-          setUploadingAvatar(true);
-          try {
-            const res = await fetch(`${API_BASE}/profile/avatar`, {
-              method: 'PUT',
-              headers: { 
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}` 
-              },
-              body: JSON.stringify({ avatar: compressedBase64 })
-            });
-            const data = await res.json();
-            if (data.success && data.data.avatarUrl) {
-              updateUser({ avatarUrl: data.data.avatarUrl });
-              toast.success('Avatar updated successfully!');
-            } else {
-              toast.error(data.message || 'Failed to update avatar');
-            }
-          } catch (err) {
-            toast.error('Error uploading avatar');
-          } finally {
-            setUploadingAvatar(false);
-          }
-        }
-      };
-      img.src = base64;
-    };
-    reader.readAsDataURL(file);
   };
 
-  // Level & XP calculations
-  const userLevel = user?.level || 1;
-  const userXP = user?.xp || 0;
-  const currentThreshold = LEVEL_THRESHOLDS[userLevel - 1] || 0;
-  const nextThreshold = LEVEL_THRESHOLDS[userLevel] || (userXP + 500);
-  const xpIntoLevel = Math.max(0, userXP - currentThreshold);
-  const xpSpan = Math.max(1, nextThreshold - currentThreshold);
-  const levelProgress = Math.min(100, Math.round((xpIntoLevel / xpSpan) * 100));
+  // Level & XP
+  const level = user?.level || 1;
+  const xp = user?.xp || 0;
+  const floor = LEVEL_THRESHOLDS[level - 1] ?? 0;
+  const ceil = LEVEL_THRESHOLDS[level] ?? xp + 500;
+  const progress = Math.min(100, Math.round((Math.max(0, xp - floor) / Math.max(1, ceil - floor)) * 100));
+
+  const name = user?.displayName || user?.username || 'Writer';
+  const initial = name.charAt(0).toUpperCase();
+  const joined = user?.createdAt
+    ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+    : null;
 
   return (
-    <div className="max-w-5xl mx-auto px-4 md:px-8 py-8 animate-fade-in space-y-8">
-      
-      {/* ── WRITER PASSPORT HERO BANNER ── */}
-      <div className="p-6 md:p-8 rounded-3xl bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-white border border-zinc-800 shadow-sm relative overflow-hidden">
-        
-        {/* Subtle background glow */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-6 text-center md:text-left">
-          
-          {/* Avatar with upload overlay */}
-          <div 
+    <div className="max-w-4xl mx-auto px-4 md:px-8 py-8 md:py-10 animate-fade-in">
+      {/* ── Header ── */}
+      <header className="flex flex-col sm:flex-row sm:items-center gap-5">
+        <div className="relative shrink-0 self-start">
+          <button
+            type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="group relative w-24 h-24 rounded-2xl overflow-hidden bg-zinc-800 border-2 border-white/10 ring-4 ring-white/5 cursor-pointer shrink-0 shadow-lg"
+            aria-label="Change profile photo"
+            className="group relative block w-20 h-20 rounded-full overflow-hidden bg-zinc-100 border border-zinc-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2"
           >
             {user?.avatarUrl ? (
-              <img src={getAvatarUrl(user.avatarUrl)} alt="Avatar" className="w-full h-full object-cover" />
+              <img src={getAvatarUrl(user.avatarUrl)} alt="" className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-zinc-400 bg-gradient-to-br from-zinc-800 to-zinc-900">
-                {user?.displayName?.charAt(0)?.toUpperCase() || user?.username?.charAt(0)?.toUpperCase() || 'W'}
-              </div>
-            )}
-            
-            <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              {uploadingAvatar ? (
-                <Spinner size={16} color="#ffffff" />
-              ) : (
-                <>
-                  <svg className="w-5 h-5 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-                    <circle cx="12" cy="13" r="4" />
-                  </svg>
-                  <span className="text-[10px] font-semibold uppercase tracking-wider">Change</span>
-                </>
-              )}
-            </div>
-            <input type="file" accept="image/jpeg, image/png, image/webp" ref={fileInputRef} className="hidden" onChange={handleAvatarChange} />
-          </div>
-
-          {/* User Bio & Tier */}
-          <div className="flex-1 space-y-2">
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5">
-              <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
-                {user?.displayName || user?.username || 'Anonymous Writer'}
-              </h1>
-              <span className="px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-white/10 text-zinc-300 border border-white/10 uppercase tracking-wider">
-                {user?.tier || 'FREE'} PLAN
+              <span className="w-full h-full flex items-center justify-center text-2xl font-semibold text-zinc-500" style={{ fontFamily: 'var(--font-serif)' }}>
+                {initial}
               </span>
-            </div>
-
-            <p className="text-xs text-zinc-400 font-normal">
-              @{user?.username || 'writer'} &bull; Joined {user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Recently'}
-            </p>
-
-            {/* Level & XP Strip */}
-            <div className="pt-3 max-w-md w-full">
-              <div className="flex justify-between text-xs text-zinc-400 mb-1.5 font-medium">
-                <span className="text-zinc-200 font-semibold">Level {userLevel} Storyteller</span>
-                <span>{userXP.toLocaleString()} / {nextThreshold.toLocaleString()} XP ({levelProgress}%)</span>
-              </div>
-              <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full transition-all duration-500" 
-                  style={{ width: `${levelProgress}%` }}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Quick Stats Pillar */}
-          <div className="flex md:flex-col items-center justify-center gap-4 md:gap-2 px-5 py-3 rounded-2xl bg-white/5 border border-white/10 shrink-0">
-            <div className="text-center">
-              <div className="text-lg font-bold text-zinc-100">{user?.currentStreak || 1} 🔥</div>
-              <div className="text-[10px] text-zinc-400 uppercase tracking-wide">Streak</div>
-            </div>
-            <div className="w-px md:w-full h-8 md:h-px bg-white/10" />
-            <div className="text-center">
-              <div className="text-lg font-bold text-zinc-100">{user?.longestStreak || 1} d</div>
-              <div className="text-[10px] text-zinc-400 uppercase tracking-wide">Best Run</div>
-            </div>
-          </div>
-
-        </div>
-
-      </div>
-
-      {/* ── AI EDITORIAL ASSESSMENT (COACH'S ASSESSMENT) ── */}
-      {profile?.aiInterpretation ? (
-        <div className="p-6 md:p-8 rounded-2xl bg-white border border-zinc-200/80 shadow-2xs space-y-3">
-          <div className="flex items-center gap-2 text-zinc-900 pb-2 border-b border-zinc-100">
-            <span className="text-indigo-600 font-bold text-base">✦</span>
-            <h2 className="text-sm font-semibold tracking-tight text-zinc-900">
-              AI Editorial Assessment & Stylistic Voice
-            </h2>
-          </div>
-          <div className="text-sm text-zinc-700 leading-relaxed font-normal prose prose-zinc max-w-none pt-1">
-            <ReactMarkdown>{profile.aiInterpretation}</ReactMarkdown>
-          </div>
-        </div>
-      ) : (
-        <div className="p-6 md:p-7 rounded-2xl bg-white border border-zinc-200/80 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100/60 flex items-center justify-center text-indigo-600 shrink-0">
-              ✦
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold text-zinc-900">AI Editorial Calibration in Progress</h3>
-              <p className="text-xs text-zinc-500">Penned stories will trigger comprehensive DNA analysis of your voice, rhythm, and tone.</p>
-            </div>
-          </div>
-          <button 
-            onClick={() => navigate('/new')}
-            className="px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold whitespace-nowrap transition-colors"
-          >
-            Start Writing Sprint &rarr;
+            )}
+            <span className={`absolute inset-0 flex items-center justify-center bg-zinc-950/55 text-white transition-opacity ${uploadingAvatar ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+              {uploadingAvatar ? <Spinner size={16} color="#fff" /> : <Camera size={18} strokeWidth={1.75} />}
+            </span>
           </button>
+          <span className="absolute -bottom-0.5 -right-0.5 w-7 h-7 rounded-full bg-white border border-zinc-200 flex items-center justify-center text-zinc-600 pointer-events-none">
+            <Camera size={13} strokeWidth={2} />
+          </span>
+          <input type="file" accept="image/jpeg,image/png,image/webp" ref={fileInputRef} className="hidden" onChange={handleAvatarChange} />
         </div>
-      )}
 
-      {/* ── MASTERY DIMENSIONS: STRENGTHS & FOCUS AREAS BENTO ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        
-        {/* Strengths */}
-        <div className="p-6 rounded-2xl bg-white border border-zinc-200/80 shadow-2xs space-y-4">
-          <div className="flex items-center justify-between pb-2 border-b border-zinc-100">
-            <h2 className="text-sm font-semibold text-zinc-900 tracking-tight flex items-center gap-2">
-              <span className="text-emerald-500 font-bold">✓</span>
-              <span>Validated Superpowers</span>
-            </h2>
-            <span className="text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200/50">
-              {profile?.strengths?.length || 0} Strengths
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-2xl md:text-[28px] font-semibold tracking-tight text-zinc-950 truncate">{name}</h1>
+            <span className="px-2 py-0.5 rounded-md border border-zinc-200 bg-white text-[11px] font-medium text-zinc-600">
+              {(user?.tier || 'FREE').charAt(0) + (user?.tier || 'FREE').slice(1).toLowerCase()}
             </span>
           </div>
-
-          {(profile?.strengths?.length ?? 0) > 0 ? (
-            <div className="space-y-2.5">
-              {profile!.strengths.map((s: any, i: number) => (
-                <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-zinc-50 border border-zinc-100">
-                  <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs shrink-0 mt-0.5">
-                    ✓
-                  </span>
-                  <span className="text-xs font-medium text-zinc-800 leading-snug">
-                    {s.label}
-                  </span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-xs text-zinc-400 py-6 text-center">
-              Write a few more stories to allow AI to identify your core strengths.
-            </p>
-          )}
-        </div>
-
-        {/* Focus Areas */}
-        <div className="p-6 rounded-2xl bg-white border border-zinc-200/80 shadow-2xs space-y-4">
-          <div className="flex items-center justify-between pb-2 border-b border-zinc-100">
-            <h2 className="text-sm font-semibold text-zinc-900 tracking-tight flex items-center gap-2">
-              <span className="text-amber-500 font-bold">🎯</span>
-              <span>Growth & Polish Areas</span>
-            </h2>
-            <span className="text-[11px] font-medium text-zinc-500">
-              Recurring Habits
-            </span>
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-zinc-500">
+            <span className="inline-flex items-center gap-1.5"><AtSign size={13} />{user?.username || 'writer'}</span>
+            {joined && <span className="inline-flex items-center gap-1.5"><Calendar size={13} />Joined {joined}</span>}
           </div>
-
-          {(profile?.weaknesses?.length ?? 0) > 0 ? (
-            <div className="space-y-2.5">
-              {profile!.weaknesses.map((w: any, i: number) => (
-                <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-zinc-50 border border-zinc-100">
-                  <div className="flex items-center gap-2.5">
-                    <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
-                    <span className="text-xs font-medium text-zinc-800 capitalize">
-                      {w.subCategory?.replace(/_/g, ' ')}
-                    </span>
-                  </div>
-                  <span className="text-[11px] font-semibold text-zinc-500 bg-white px-2 py-0.5 rounded-md border border-zinc-200/60 shadow-3xs">
-                    {w.count} flags
-                  </span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-xs text-zinc-400 py-6 text-center">
-              No recurrent weaknesses detected. Your writing mechanics are in excellent form.
-            </p>
-          )}
         </div>
 
+        <button
+          type="button"
+          onClick={() => navigate('/new')}
+          className="self-start sm:self-center inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-950 hover:bg-zinc-800 text-white text-[13px] font-medium transition-colors"
+        >
+          <PenLine size={14} /> New sprint
+        </button>
+      </header>
+
+      {/* ── Level ── */}
+      <div className="mt-7">
+        <div className="flex items-baseline justify-between text-[13px]">
+          <span className="font-medium text-zinc-900">Level {level}</span>
+          <span className="text-zinc-500 tabular-nums">
+            {xp.toLocaleString()} / {ceil.toLocaleString()} XP
+          </span>
+        </div>
+        <div className="mt-2 h-1.5 w-full rounded-full bg-zinc-200/70 overflow-hidden" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100} aria-label="Progress to next level">
+          <div className="h-full rounded-full bg-zinc-900 transition-[width] duration-500" style={{ width: `${progress}%` }} />
+        </div>
+        <p className="mt-1.5 text-xs text-zinc-500">{Math.max(0, ceil - xp).toLocaleString()} XP to level {level + 1}</p>
       </div>
 
-      {/* ── SKILL TRAJECTORIES & TRENDS ── */}
-      {(profile?.trends?.length ?? 0) > 0 && (
-        <div className="p-6 rounded-2xl bg-white border border-zinc-200/80 shadow-2xs space-y-4">
-          <div className="pb-2 border-b border-zinc-100">
-            <h2 className="text-sm font-semibold text-zinc-900 tracking-tight">Recent Skill Trajectories</h2>
-            <p className="text-xs text-zinc-500">How your mechanics and storytelling techniques are evolving over time</p>
-          </div>
+      {/* ── Tabs ── */}
+      <nav className="mt-8 border-b border-zinc-200 flex gap-6" role="tablist" aria-label="Profile sections">
+        {TABS.map(({ id, label, icon: Icon }) => {
+          const active = tab === id;
+          return (
+            <button
+              key={id}
+              role="tab"
+              aria-selected={active}
+              onClick={() => setTab(id)}
+              className={`-mb-px inline-flex items-center gap-2 pb-3 pt-1 text-[13px] font-medium border-b-2 transition-colors ${
+                active ? 'border-zinc-950 text-zinc-950' : 'border-transparent text-zinc-500 hover:text-zinc-800'
+              }`}
+            >
+              <Icon size={15} strokeWidth={1.75} /> {label}
+            </button>
+          );
+        })}
+      </nav>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {profile!.trends.map((t: any, i: number) => {
-              const isImproving = t.state === 'improving';
-              const isWorsening = t.state === 'worsening';
-              return (
-                <div key={i} className="p-3.5 rounded-xl bg-zinc-50 border border-zinc-100 flex items-center justify-between">
-                  <span className="text-xs font-medium text-zinc-800 capitalize truncate">
-                    {t.subCategory?.replace(/_/g, ' ')}
-                  </span>
-                  <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full ${
-                    isImproving
-                      ? 'text-emerald-700 bg-emerald-50 border border-emerald-200/50'
-                      : isWorsening
-                      ? 'text-amber-700 bg-amber-50 border border-amber-200/50'
-                      : 'text-zinc-600 bg-zinc-100'
-                  }`}>
-                    <span>{isImproving ? '↑' : isWorsening ? '↓' : '→'}</span>
-                    <span className="capitalize">{t.state}</span>
-                  </span>
-                </div>
-              );
-            })}
+      <div className="pt-7" role="tabpanel">
+        {tab === 'overview' && (
+          loading ? <OverviewSkeleton /> : loadError ? (
+            <EmptyState icon={FileText} title="Couldn't load your profile" body="Check your connection and refresh the page." />
+          ) : (
+            <Overview
+              profile={profile}
+              streak={user?.currentStreak ?? 0}
+              bestStreak={user?.longestStreak ?? 0}
+              onStart={() => navigate('/new')}
+            />
+          )
+        )}
+        {tab === 'achievements' && <AchievementsGrid />}
+        {tab === 'settings' && <LeaderboardSettings onChangePhoto={() => fileInputRef.current?.click()} />}
+      </div>
+    </div>
+  );
+}
+
+/* ───────────────────────── Overview ───────────────────────── */
+
+function Overview({ profile, streak, bestStreak, onStart }: { profile: WritingProfile | null; streak: number; bestStreak: number; onStart: () => void }) {
+  const hasData = !!profile && profile.totalSessions > 0;
+
+  const stats = [
+    { icon: FileText, label: 'Sessions', value: profile?.totalSessions ?? 0 },
+    { icon: Flame, label: 'Current streak', value: `${streak} ${streak === 1 ? 'day' : 'days'}` },
+    { icon: Trophy, label: 'Best streak', value: `${bestStreak} ${bestStreak === 1 ? 'day' : 'days'}` },
+    { icon: Type, label: 'Avg. words', value: hasData ? Math.round(profile!.averageWordCount).toLocaleString() : '—' },
+  ];
+
+  return (
+    <div className="space-y-10">
+      {/* Stats */}
+      <section aria-label="Practice stats" className="grid grid-cols-2 md:grid-cols-4 gap-px rounded-xl border border-zinc-200 bg-zinc-200 overflow-hidden">
+        {stats.map(({ icon: Icon, label, value }) => (
+          <div key={label} className="bg-white p-4 md:p-5">
+            <div className="flex items-center gap-1.5 text-xs text-zinc-500"><Icon size={13} strokeWidth={1.75} />{label}</div>
+            <div className="mt-2 text-xl font-semibold tracking-tight text-zinc-950 tabular-nums">{value}</div>
           </div>
-        </div>
+        ))}
+      </section>
+
+      {!hasData ? (
+        <EmptyState
+          icon={PenLine}
+          title="Your profile fills in as you write"
+          body="Finish a sprint and you'll see average scores, what you do well, and the habits worth working on."
+          action={<button onClick={onStart} className="inline-flex items-center gap-1.5 text-[13px] font-medium text-zinc-950 hover:underline underline-offset-4">Start a sprint <ArrowRight size={14} /></button>}
+        />
+      ) : (
+        <>
+          {/* Scores */}
+          <Section title="Average scores" hint={`Across ${profile!.totalSessions} ${profile!.totalSessions === 1 ? 'session' : 'sessions'}`}>
+            <div className="space-y-4">
+              <ScoreRow label="English" value={profile!.averageGrammarScore} />
+              <ScoreRow label="Story" value={profile!.averageStoryScore} />
+              <ScoreRow label="Director" value={profile!.averageDirectorScore} />
+            </div>
+            {profile!.averageWritingSpeed > 0 && (
+              <p className="mt-4 inline-flex items-center gap-1.5 text-xs text-zinc-500">
+                <Gauge size={13} /> About {Math.round(profile!.averageWritingSpeed)} words per minute
+              </p>
+            )}
+          </Section>
+
+          {/* Coach notes */}
+          {profile!.aiInterpretation && <CoachNotes text={profile!.aiInterpretation} updatedAt={profile!.updatedAt} />}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-8">
+            <Section title="What you do well">
+              {profile!.strengths?.length ? (
+                <ul className="space-y-2.5">
+                  {profile!.strengths.map((s, i) => (
+                    <li key={i} className="flex items-start gap-2.5 text-sm text-zinc-800">
+                      <Check size={16} className="mt-0.5 shrink-0 text-emerald-600" strokeWidth={2} />
+                      {s.label}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-zinc-500">Nothing stands out consistently yet. That's normal early on.</p>
+              )}
+            </Section>
+
+            <Section title="Worth working on" hint="Recurring, not one-offs">
+              <FocusList weaknesses={profile!.weaknesses} trends={profile!.trends} />
+            </Section>
+          </div>
+        </>
       )}
+    </div>
+  );
+}
 
-      {/* ── ACHIEVEMENTS TROPHY SHOWCASE ── */}
-      <AchievementsGrid />
+function FocusList({ weaknesses, trends }: { weaknesses: WritingProfile['weaknesses']; trends: WritingProfile['trends'] }) {
+  if (!weaknesses?.length) {
+    return <p className="text-sm text-zinc-500">No recurring issues right now.</p>;
+  }
+  const trendOf = (sub: string, fallback?: string) => trends?.find(t => t.subCategory === sub)?.state ?? fallback ?? 'stable';
+  return (
+    <ul className="divide-y divide-zinc-100 -my-2">
+      {weaknesses.slice(0, 6).map((w, i) => {
+        const t = trendOf(w.subCategory, w.trend);
+        const TIcon = t === 'improving' ? TrendingDown : t === 'worsening' ? TrendingUp : Minus;
+        const tone = t === 'improving' ? 'text-emerald-700' : t === 'worsening' ? 'text-amber-700' : 'text-zinc-500';
+        const label = t === 'improving' ? 'Improving' : t === 'worsening' ? 'More frequent' : 'Steady';
+        return (
+          <li key={i} className="flex items-center justify-between gap-3 py-2.5">
+            <div className="min-w-0">
+              <div className="text-sm text-zinc-900 truncate">{humanize(w.subCategory)}</div>
+              <div className="text-xs text-zinc-500">
+                {w.count} {w.count === 1 ? 'time' : 'times'}
+                {w.affectedSessions ? ` in ${w.affectedSessions} ${w.affectedSessions === 1 ? 'session' : 'sessions'}` : ''}
+              </div>
+            </div>
+            <span className={`shrink-0 inline-flex items-center gap-1 text-xs font-medium ${tone}`} title={label}>
+              <TIcon size={13} /> {label}
+            </span>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
 
-      {/* ── LEADERBOARD & PUBLIC PROFILE PREFERENCES ── */}
-      <LeaderboardSettings />
+function CoachNotes({ text, updatedAt }: { text: string; updatedAt?: string }) {
+  const [open, setOpen] = useState(false);
+  const long = text.length > 600;
+  return (
+    <Section
+      title="Coach's notes"
+      icon={Sparkles}
+      hint={updatedAt ? `Updated ${new Date(updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : undefined}
+    >
+      <div className="relative">
+        <div
+          className={`prose prose-zinc prose-sm max-w-none text-zinc-700 leading-7 [&_strong]:text-zinc-900 [&_strong]:font-semibold [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-3 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mb-1 [&_h1]:hidden [&_h2]:font-sans [&_h2]:text-sm [&_h2]:font-semibold [&_h2]:mt-4 [&_h2]:mb-1 [&_h3]:font-sans [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:mt-4 [&_h3]:mb-1 ${long && !open ? 'max-h-56 overflow-hidden' : ''}`}
+          style={{ fontFamily: 'var(--font-serif)', fontSize: '15px' }}
+        >
+          <ReactMarkdown>{text}</ReactMarkdown>
+        </div>
+        {long && !open && <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#fafafa] to-transparent" />}
+      </div>
+      {long && (
+        <button onClick={() => setOpen(o => !o)} className="mt-3 inline-flex items-center gap-1 text-[13px] font-medium text-zinc-900 hover:underline underline-offset-4">
+          {open ? 'Show less' : 'Read more'}
+          <ChevronDown size={14} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
+        </button>
+      )}
+    </Section>
+  );
+}
 
+/* ───────────────────────── Primitives ───────────────────────── */
+
+function Section({ title, hint, icon: Icon, children }: { title: string; hint?: string; icon?: typeof Sparkles; children: React.ReactNode }) {
+  return (
+    <section>
+      <div className="flex items-baseline justify-between gap-3 mb-4">
+        <h2 className="inline-flex items-center gap-2 text-[15px] font-semibold tracking-tight text-zinc-950">
+          {Icon && <Icon size={15} strokeWidth={1.75} className="text-zinc-500" />}
+          {title}
+        </h2>
+        {hint && <span className="text-xs text-zinc-500">{hint}</span>}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function ScoreRow({ label, value }: { label: string; value: number }) {
+  const v = Math.round(value || 0);
+  return (
+    <div className="grid grid-cols-[72px_1fr_36px] items-center gap-3">
+      <span className="text-[13px] text-zinc-600">{label}</span>
+      <div className="h-1.5 rounded-full bg-zinc-200/70 overflow-hidden">
+        <div className="h-full rounded-full bg-zinc-800" style={{ width: `${v}%` }} />
+      </div>
+      <span className="text-[13px] font-medium text-zinc-900 text-right tabular-nums">{v}</span>
+    </div>
+  );
+}
+
+function EmptyState({ icon: Icon, title, body, action }: { icon: typeof PenLine; title: string; body: string; action?: React.ReactNode }) {
+  return (
+    <div className="rounded-xl border border-dashed border-zinc-300 px-6 py-10 text-center">
+      <div className="mx-auto w-10 h-10 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500">
+        <Icon size={18} strokeWidth={1.75} />
+      </div>
+      <h3 className="mt-3 text-sm font-semibold text-zinc-900">{title}</h3>
+      <p className="mt-1 text-[13px] text-zinc-500 max-w-sm mx-auto">{body}</p>
+      {action && <div className="mt-4">{action}</div>}
+    </div>
+  );
+}
+
+function OverviewSkeleton() {
+  return (
+    <div className="space-y-10 animate-pulse" aria-busy="true" aria-label="Loading profile">
+      <div className="h-[86px] rounded-xl bg-zinc-100" />
+      <div className="space-y-3">
+        <div className="h-4 w-32 rounded bg-zinc-100" />
+        {[0, 1, 2].map(i => <div key={i} className="h-3 rounded bg-zinc-100" />)}
+      </div>
+      <div className="space-y-2">
+        <div className="h-4 w-28 rounded bg-zinc-100" />
+        <div className="h-24 rounded bg-zinc-100" />
+      </div>
     </div>
   );
 }
