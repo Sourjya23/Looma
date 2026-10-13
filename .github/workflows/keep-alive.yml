@@ -19,7 +19,7 @@ jobs:
           
           # Default to production Render URL if secret not configured yet
           if [ -z "$API_URL" ]; then
-            API_URL="https://story-writing-api.onrender.com"
+            API_URL="https://looma-t8eg.onrender.com"
           fi
           
           echo "Pinging: $API_URL/api/cron/keep-alive"
@@ -49,7 +49,7 @@ jobs:
           CRON_SECRET="${{ secrets.CRON_SECRET }}"
           
           if [ -z "$API_URL" ]; then
-            API_URL="https://story-writing-api.onrender.com"
+            API_URL="https://looma-t8eg.onrender.com"
           fi
           
           echo "Triggering daily maintenance at: $API_URL/api/cron/daily-tasks"

@@ -1,7 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { API_BASE } from '@/lib/api';
+import { Spinner } from '@/components/ui/Spinner';
+
+const CACHE_KEY = 'looma_history_cache';
 
 interface HistorySidebarProps {
   token: string;
@@ -12,30 +15,72 @@ interface HistorySidebarProps {
 }
 
 export function HistorySidebar({ token, onNewWriting, activeSessionId, isOpen, onClose }: HistorySidebarProps) {
-  const [history, setHistory] = useState<any[]>([]);
+  const [history, setHistory] = useState<any[]>(() => {
+    try {
+      const cached = localStorage.getItem(CACHE_KEY);
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
   const [loading, setLoading] = useState(false);
+  const [hasError, setHasError] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const navigate = useNavigate();
+  const abortRef = useRef<AbortController | null>(null);
 
   const fetchHistory = async (p: number) => {
     if (loading || (!hasMore && p !== 1)) return;
     setLoading(true);
+    setHasError(false);
+
+    if (abortRef.current) {
+      abortRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
+
     try {
       const res = await fetch(`${API_BASE}/history?page=${p}&limit=20`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include',
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
+
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+
       const data = await res.json();
-      if (data.success) {
+      if (data.success && Array.isArray(data.data)) {
         if (p === 1) {
           setHistory(data.data);
+          try {
+            localStorage.setItem(CACHE_KEY, JSON.stringify(data.data));
+          } catch (e) {
+            console.warn('Failed to cache history:', e);
+          }
         } else {
-          setHistory(prev => [...prev, ...data.data]);
+          setHistory(prev => {
+            const updated = [...prev, ...data.data];
+            return updated;
+          });
         }
-        setHasMore(p < data.meta.totalPages);
+        setHasMore(p < (data.meta?.totalPages || 1));
+      } else {
+        throw new Error(data.message || 'Failed to fetch history');
       }
-    } catch (e) {
-      console.error(e);
+    } catch (e: any) {
+      clearTimeout(timeoutId);
+      if (e?.name !== 'AbortError') {
+        console.warn('History fetch failed:', e);
+        if (p === 1 && history.length === 0) {
+          setHasError(true);
+        }
+      }
     } finally {
       setLoading(false);
     }
@@ -43,6 +88,11 @@ export function HistorySidebar({ token, onNewWriting, activeSessionId, isOpen, o
 
   useEffect(() => {
     fetchHistory(1);
+    return () => {
+      if (abortRef.current) {
+        abortRef.current.abort();
+      }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
@@ -58,12 +108,22 @@ export function HistorySidebar({ token, onNewWriting, activeSessionId, isOpen, o
     try {
       const res = await fetch(`${API_BASE}/sessions/${id}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include',
       });
       if (res.ok) {
-        setHistory(prev => prev.filter(h => h.id !== id));
+        setHistory(prev => {
+          const updated = prev.filter(h => h.id !== id);
+          try {
+            localStorage.setItem(CACHE_KEY, JSON.stringify(updated));
+          } catch {}
+          return updated;
+        });
         toast.success('Story deleted successfully');
-        if (activeSessionId === id) navigate('/dashboard'); onClose();;
+        if (activeSessionId === id) {
+          navigate('/dashboard');
+          onClose();
+        }
       } else {
         toast.error('Failed to delete story');
         console.error('Failed to delete session');
@@ -77,20 +137,39 @@ export function HistorySidebar({ token, onNewWriting, activeSessionId, isOpen, o
   const handleToggleBookmark = async (e: React.MouseEvent, id: string, currentStatus: boolean) => {
     e.stopPropagation();
     // Optimistic UI update
-    setHistory(prev => prev.map(h => h.id === id ? { ...h, isBookmarked: !currentStatus } : h));
+    setHistory(prev => {
+      const updated = prev.map(h => h.id === id ? { ...h, isBookmarked: !currentStatus } : h);
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
     
     try {
       const res = await fetch(`${API_BASE}/sessions/${id}/bookmark`, {
         method: 'PUT',
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include',
       });
       if (!res.ok) {
         // Revert on failure
-        setHistory(prev => prev.map(h => h.id === id ? { ...h, isBookmarked: currentStatus } : h));
+        setHistory(prev => {
+          const reverted = prev.map(h => h.id === id ? { ...h, isBookmarked: currentStatus } : h);
+          try {
+            localStorage.setItem(CACHE_KEY, JSON.stringify(reverted));
+          } catch {}
+          return reverted;
+        });
         toast.error('Failed to update bookmark');
       }
     } catch (err) {
-      setHistory(prev => prev.map(h => h.id === id ? { ...h, isBookmarked: currentStatus } : h));
+      setHistory(prev => {
+        const reverted = prev.map(h => h.id === id ? { ...h, isBookmarked: currentStatus } : h);
+        try {
+          localStorage.setItem(CACHE_KEY, JSON.stringify(reverted));
+        } catch {}
+        return reverted;
+      });
       toast.error('Error updating bookmark');
     }
   };
@@ -291,33 +370,96 @@ export function HistorySidebar({ token, onNewWriting, activeSessionId, isOpen, o
 
       {/* Scrollable History List */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', minWidth: '280px' }}>
-        {renderGroup('TODAY', today)}
-        {renderGroup('YESTERDAY', yesterday)}
-        {renderGroup('OLDER', older)}
-
-        {loading && (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '1rem' }}>
-            <div className="spinner" style={{ width: '20px', height: '20px', borderWidth: '2px' }}></div>
+        {loading && history.length === 0 ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+            <div style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: '0.25rem', paddingLeft: '0.5rem', letterSpacing: '0.05em' }}>
+              RECENT STORIES
+            </div>
+            {[1, 2, 3].map((i) => (
+              <div 
+                key={i} 
+                className="animate-pulse"
+                style={{ 
+                  padding: '0.75rem', 
+                  borderRadius: '0.5rem', 
+                  backgroundColor: 'var(--color-bg-alt)', 
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.5rem'
+                }}
+              >
+                <div 
+                  style={{ 
+                    height: '13px', 
+                    width: i === 1 ? '70%' : i === 2 ? '85%' : '60%', 
+                    borderRadius: '4px', 
+                    backgroundColor: 'var(--color-border)',
+                  }} 
+                />
+                <div 
+                  style={{ 
+                    height: '10px', 
+                    width: '35%', 
+                    borderRadius: '3px', 
+                    backgroundColor: 'var(--color-border)',
+                    opacity: 0.6
+                  }} 
+                />
+              </div>
+            ))}
           </div>
-        )}
-        
-        {hasMore && !loading && (
-          <button 
-            onClick={() => {
-              const nextPage = page + 1;
-              setPage(nextPage);
-              fetchHistory(nextPage);
-            }}
-            style={{ width: '100%', padding: '0.5rem', background: 'none', border: 'none', color: 'var(--color-text-secondary)', cursor: 'pointer' }}
-          >
-            Load More
-          </button>
-        )}
+        ) : (
+          <>
+            {renderGroup('TODAY', today)}
+            {renderGroup('YESTERDAY', yesterday)}
+            {renderGroup('OLDER', older)}
 
-        {!loading && history.length === 0 && (
-          <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
-            No stories yet. Start writing!
-          </div>
+            {loading && history.length > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'center', padding: '1rem' }}>
+                <Spinner size={16} />
+              </div>
+            )}
+            
+            {hasMore && !loading && history.length > 0 && (
+              <button 
+                onClick={() => {
+                  const nextPage = page + 1;
+                  setPage(nextPage);
+                  fetchHistory(nextPage);
+                }}
+                style={{ width: '100%', padding: '0.5rem', background: 'none', border: 'none', color: 'var(--color-text-secondary)', cursor: 'pointer', fontSize: '0.8125rem', fontWeight: 500 }}
+              >
+                Load More
+              </button>
+            )}
+
+            {!loading && history.length === 0 && !hasError && (
+              <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>
+                No stories yet. Start writing!
+              </div>
+            )}
+
+            {!loading && history.length === 0 && hasError && (
+              <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--color-text-muted)', fontSize: '0.8125rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
+                <span>Couldn&apos;t load history</span>
+                <button 
+                  onClick={() => fetchHistory(1)}
+                  style={{ 
+                    background: 'var(--color-bg-primary)', 
+                    border: '1px solid var(--color-border)', 
+                    borderRadius: '0.375rem', 
+                    padding: '0.35rem 0.75rem', 
+                    fontSize: '0.75rem', 
+                    cursor: 'pointer', 
+                    color: 'var(--color-text-primary)',
+                    fontWeight: 500
+                  }}
+                >
+                  Retry
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
 

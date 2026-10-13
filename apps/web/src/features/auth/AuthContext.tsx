@@ -47,36 +47,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           headers,
           credentials: 'include', // Send cookie even if no token in storage
         });
-        const data = await res.json();
 
-        if (data.success) {
-          setUser(data.data);
-          // Update cached user
-          if (localStorage.getItem('token')) {
-            localStorage.setItem('user', JSON.stringify(data.data));
-          } else if (sessionStorage.getItem('token')) {
-            sessionStorage.setItem('user', JSON.stringify(data.data));
-          } else {
-            // Logged in via cookie only
-            setToken(data.data.token || null);
-          }
-        } else {
-          // Session invalid — clear storage
+        if (res.status === 401 || res.status === 403) {
+          // Explicit unauthorized response from server — invalidate session
           setToken(null);
           setUser(null);
           localStorage.removeItem('token');
           localStorage.removeItem('user');
           sessionStorage.removeItem('token');
           sessionStorage.removeItem('user');
+          return;
+        }
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.data) {
+            setUser(data.data);
+            // Update cached user
+            if (localStorage.getItem('token')) {
+              localStorage.setItem('user', JSON.stringify(data.data));
+            } else if (sessionStorage.getItem('token')) {
+              sessionStorage.setItem('user', JSON.stringify(data.data));
+            } else {
+              // Logged in via cookie only
+              setToken(data.data.token || null);
+            }
+          }
         }
       } catch (e) {
-        console.error('Failed to verify session', e);
-        setToken(null);
-        setUser(null);
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        sessionStorage.removeItem('token');
-        sessionStorage.removeItem('user');
+        // Network failure, offline, or Render waking up — keep cached credentials to prevent unprompted logouts
+        console.warn('Network issue or backend sleeping during session check, retaining local session:', e);
       } finally {
         setIsLoading(false);
       }
