@@ -5,8 +5,8 @@ interface SpinnerProps {
 }
 
 /**
- * Ultra-refined hairline vector spinner (Linear / Vercel style).
- * Continuous, smooth 60fps rotation that never freezes or looks chunky.
+ * Ultra-smooth, mathematically balanced vector spinner (Linear / Vercel grade).
+ * Constant, rock-solid linear rotation with zero easing stutter, zero wobble, and zero SMIL conflicts.
  */
 export function Spinner({ size = 16, color = 'currentColor', className = '' }: SpinnerProps) {
   const pixelSize = typeof size === 'number' ? `${size}px` : size;
@@ -20,9 +20,9 @@ export function Spinner({ size = 16, color = 'currentColor', className = '' }: S
         display: 'inline-block',
         verticalAlign: 'middle',
         flexShrink: 0,
-        willChange: 'transform',
-        animation: 'spin 0.7s cubic-bezier(0.4, 0, 0.2, 1) infinite',
-        WebkitAnimation: 'spin 0.7s cubic-bezier(0.4, 0, 0.2, 1) infinite',
+        transformOrigin: 'center',
+        animation: 'spin 0.75s linear infinite',
+        WebkitAnimation: 'spin 0.75s linear infinite',
       }}
       viewBox="0 0 24 24"
       fill="none"
@@ -30,32 +30,23 @@ export function Spinner({ size = 16, color = 'currentColor', className = '' }: S
       aria-label="Loading"
       role="status"
     >
-      {/* Background track circle - delicate hairline */}
+      {/* Background track circle - subtle hairline */}
       <circle
         cx="12"
         cy="12"
         r="9.5"
         stroke={color}
-        strokeWidth="2"
+        strokeWidth="2.25"
         strokeLinecap="round"
         style={{ opacity: 0.18 }}
       />
-      {/* Active spinning arc - sleek tapered gradient stroke */}
+      {/* Active rotating arc - mathematically precise 90-degree quadrant arc */}
       <path
-        d="M12 2.5C6.75329 2.5 2.5 6.75329 2.5 12C2.5 14.3647 3.36444 16.5273 4.8 18.2"
+        d="M12 2.5A9.5 9.5 0 0 1 21.5 12"
         stroke={color}
-        strokeWidth="2"
+        strokeWidth="2.25"
         strokeLinecap="round"
-        style={{ opacity: 0.95 }}
-      />
-      {/* Compositor-level SMIL animation fallback */}
-      <animateTransform
-        attributeName="transform"
-        type="rotate"
-        from="0 12 12"
-        to="360 12 12"
-        dur="0.7s"
-        repeatCount="indefinite"
+        style={{ opacity: 1 }}
       />
     </svg>
   );

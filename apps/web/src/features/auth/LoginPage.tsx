@@ -179,9 +179,9 @@ export function LoginPage() {
               <button 
                 type="submit" 
                 disabled={loading}
-                className={`relative overflow-hidden w-full py-3.5 px-4 rounded-xl font-medium text-sm transition-all duration-200 mt-2 flex items-center justify-center gap-2.5 shadow-xs ${
+                className={`relative w-full py-3.5 px-4 rounded-xl font-medium text-sm transition-all duration-200 mt-2 flex items-center justify-center gap-2.5 shadow-xs ${
                   loading 
-                    ? 'bg-zinc-900 text-zinc-200 cursor-wait after:absolute after:inset-0 after:-translate-x-full after:animate-[shimmer_2s_infinite] after:bg-gradient-to-r after:from-transparent after:via-white/10 after:to-transparent' 
+                    ? 'bg-zinc-900 text-zinc-300 cursor-wait opacity-95' 
                     : 'bg-zinc-950 text-white hover:bg-zinc-850 active:scale-[0.99] cursor-pointer'
                 }`}
               >
